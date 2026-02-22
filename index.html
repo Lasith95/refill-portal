@@ -262,7 +262,7 @@ const contactData = [
 ];
 
 const docData = [
-    { name: "Hand book", description: "Official staff guidelines and protocol.", file: "https://drive.google.com/uc?export=download&id=1S3HEygyR1R8cVAzNKlb86m1jTSSjI5rh" },
+    { name: "Hand book", description: "Official staff guidelines and protocol.", file: "handbook.pdf" },
     { name: "Leave application form", description: "Standard form for leave requests.", file: "https://drive.google.com/uc?export=download&id=1S3HEygyR1R8cVAzNKlb86m1jTSSjI5rh&authuser=2" },
     { name: "Salary advance form", description: "Official form for salary advance requests.", file: "https://drive.google.com/uc?export=download&id=14perFQsSMCfTMP4Y2SOuWpzh3w_VSoh3" }
 ];
@@ -375,9 +375,12 @@ function renderDocuments() {
     const grid = document.getElementById('docsGrid');
     grid.innerHTML = '';
     docData.forEach(d => {
-        // Condition to change text and behavior for "Hand book"
+        // Condition to change behavior for "Hand book"
         const isRead = d.name === "Hand book";
-        const btnText = isRead ? "Read File" : "Download File";
+        const btnText = isRead ? "Open & Read" : "Download File";
+        
+        // If it's the handbook, we only want to open it in a new window (target="_blank")
+        // If it's a form, we include the 'download' attribute
         const btnAttr = isRead ? 'target="_blank"' : 'download';
 
         const div = document.createElement('div');
