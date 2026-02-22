@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Refill Reserve | Staff Portal</title>
 
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Refill Reserve","short_name":"Refill","start_url":".","display":"standalone","background_color":"#0f1113","theme_color":"#d4af37","icons":[{"src":"https://drive.google.com/uc?export=view&id=1W0016j2bQKBX3Y6ucGrMgsBefpgEd2Cb","sizes":"192x192","type":"image/png"},{"src":"https://drive.google.com/uc?export=view&id=1W0016j2bQKBX3Y6ucGrMgsBefpgEd2Cb","sizes":"512x512","type":"image/png"}]}'>
-
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="logo.png">
     <link rel="icon" type="image/png" href="logo.png">
-
-<link rel="apple-touch-icon" href="logo.png">
+    <meta name="theme-color" content="#0f1113">
 
     <style>
         :root {
@@ -19,279 +18,206 @@
             --text-primary: #ffffff;
             --text-secondary: #a0a0a0;
             --error: #e74c3c;
-            /* Categories */
-            --c-signature: #800000; --c-espresso: #6f4e37; --c-milk: #e67e22;
-            --c-matcha: #2ecc71; --c-fruit: #d35400; --c-manual: #3498db;
-            --c-batch: #7f8c8d; --c-tea: #34495e; --c-frappe: #964b00;
-            --c-mojito: #1abc9c; --c-na: #607d8b;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-primary);
-            margin: 0; padding: 20px;
-            overflow-x: hidden;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-body); color: var(--text-primary); margin: 0; padding: 20px; }
 
-        /* --- SPLASH SCREEN --- */
-        #splash-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: var(--bg-body); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 20000;
-            transition: opacity 0.6s ease;
-        }
+        /* SPLASH */
+        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20000; transition: opacity 0.6s; }
         .splash-logo { width: 120px; animation: pulse 2s infinite; }
-        .loader-bar { width: 100px; height: 2px; background: #333; margin-top: 20px; overflow: hidden; position: relative; }
-        .loader-bar::after { content: ''; position: absolute; left: -100%; width: 100%; height: 100%; background: var(--accent); animation: loading 1.5s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1); opacity: 1; } }
-        @keyframes loading { 0% { left: -100%; } 100% { left: 100%; } }
 
-        /* --- LOGIN SCREEN --- */
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-body); display: flex; justify-content: center; align-items: center; z-index: 10000;
-        }
+        /* LOGIN */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; justify-content: center; align-items: center; z-index: 10000; }
         .login-box { background: var(--bg-card); padding: 40px; border-radius: 8px; border: 1px solid var(--accent); text-align: center; width: 90%; max-width: 400px; }
-        #passInput { padding: 15px; border-radius: 4px; border: 1px solid #444; background: #252a2e; color: white; width: 100%; margin-bottom: 20px; font-size: 1rem; text-align: center; }
+        input { padding: 15px; width: 100%; background: #252a2e; border: 1px solid #444; color: white; margin-bottom: 20px; border-radius: 4px; text-align: center; }
 
-        /* --- MAIN UI --- */
-        #main-content { display: none; max-width: 1200px; margin: 0 auto; }
-        h1 { font-size: 1.5rem; letter-spacing: 5px; color: var(--accent); text-transform: uppercase; text-align: center; margin: 20px 0 40px; }
-        
-        .nav-tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; }
-        .tab-btn { background: transparent; border: 1px solid #444; color: var(--text-secondary); padding: 10px 15px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; text-transform: uppercase; font-weight: bold; }
+        /* NAV */
+        h1 { font-size: 1.2rem; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; text-align: center; }
+        .nav-tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+        .tab-btn { background: transparent; border: 1px solid #444; color: var(--text-secondary); padding: 10px 15px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
         .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-        .category-nav { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 15px; margin-bottom: 20px; scrollbar-width: none; }
-        .cat-filter-btn { white-space: nowrap; background: #1c1f22; border: 1px solid #333; color: var(--text-secondary); padding: 8px 14px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; }
-        .cat-filter-btn.active { border-color: var(--accent); color: var(--accent); }
+        .category-nav { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: none; }
+        .cat-btn { white-space: nowrap; background: #1c1f22; border: 1px solid #333; color: #888; padding: 8px 15px; border-radius: 20px; font-size: 0.7rem; }
+        .cat-btn.active { border-color: var(--accent); color: var(--accent); }
 
-        .search-bar { width: 100%; padding: 15px; background: #1c1f22; border: 1px solid #333; border-radius: 4px; color: white; margin-bottom: 25px; border-bottom: 2px solid var(--accent); }
+        .search-bar { width: 100%; padding: 15px; background: #1c1f22; border: 1px solid #333; border-bottom: 2px solid var(--accent); color: white; margin-bottom: 20px; }
 
-        /* --- CARDS --- */
-        .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { height: 400px; perspective: 1000px; }
+        /* GRID & CARDS */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { height: 350px; perspective: 1000px; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
         .card.flipped .card-inner { transform: rotateY(180deg); }
-        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; padding: 25px; }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; padding: 20px; }
         .card-front { background: var(--bg-card); border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         .card-back { background: #fff; color: #1a1a1a; transform: rotateY(180deg); overflow-y: auto; }
-
-        .cat-tag { font-size: 0.6rem; padding: 4px 10px; color: #fff; font-weight: bold; text-transform: uppercase; border-radius: 4px; margin-bottom: 10px; }
-        .label { font-weight: 800; font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 12px; display: block; border-bottom: 1px solid #eee; }
-        .content { font-size: 0.9rem; margin-top: 4px; color: #333; }
-
-        /* --- POPUP --- */
+        
+        .cat-tag { font-size: 0.6rem; padding: 3px 8px; border-radius: 4px; color: #fff; text-transform: uppercase; margin-bottom: 10px; display: inline-block; }
+        .label { font-weight: 800; font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 10px; display: block; border-bottom: 1px solid #eee; }
+        
         #popup-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:30000; justify-content:center; align-items:center; }
         .popup-box { background:#fff; color:#000; padding:30px; border-radius:8px; width:90%; max-width:500px; }
-
-        @media (max-width: 600px) { body { padding: 10px; } .recipe-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-<div id="splash-screen">
-    <img src="https://drive.google.com/uc?export=view&id=1W0016j2bQKBX3Y6ucGrMgsBefpgEd2Cb" class="splash-logo">
-    <div class="loader-bar"></div>
-</div>
+<div id="splash-screen"><img src="logo.png" class="splash-logo"></div>
 
 <div id="login-screen">
     <div class="login-box">
-        <h2 style="color: var(--accent); text-transform: uppercase; letter-spacing: 2px;">Refill Access</h2>
+        <h2 style="color:var(--accent)">REFILL ACCESS</h2>
         <input type="password" id="passInput" placeholder="Password">
-        <button class="tab-btn active" style="width:100%;" onclick="checkAuth()">Login</button>
+        <button class="tab-btn active" style="width:100%" onclick="checkAuth()">Login</button>
     </div>
 </div>
 
-<div id="main-content">
+<div id="main-content" style="display:none">
     <h1>Refill Reserve</h1>
-
     <div class="nav-tabs">
-        <button class="tab-btn active" id="btn-browse" onclick="showTab('browse')">Recipes</button>
-        <button class="tab-btn" id="btn-quiz" onclick="showTab('quiz')">Quiz</button>
-        <button class="tab-btn" id="btn-contact" onclick="showTab('contact')">Contacts</button>
-        <button class="tab-btn" id="btn-docs" onclick="showTab('docs')">Docs</button>
+        <button class="tab-btn active" id="b-recipes" onclick="showTab('recipes')">Recipes</button>
+        <button class="tab-btn" id="b-quiz" onclick="showTab('quiz')">Quiz</button>
+        <button class="tab-btn" id="b-contacts" onclick="showTab('contacts')">Contacts</button>
+        <button class="tab-btn" id="b-docs" onclick="showTab('docs')">Docs</button>
     </div>
 
-    <div id="sec-browse">
+    <div id="sec-recipes">
         <div class="category-nav" id="catNav">
-            <button class="cat-filter-btn active" onclick="filterCat('All', this)">All</button>
-            </div>
-        <input type="text" id="searchInput" class="search-bar" placeholder="Search drink name..." onkeyup="renderCards()">
-        <div class="recipe-grid" id="recipeGrid"></div>
+            <button class="cat-btn active" onclick="filterCat('All', this)">All</button>
+        </div>
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search drinks..." onkeyup="renderRecipes()">
+        <div class="grid" id="recipeGrid"></div>
     </div>
 
-    <div id="sec-quiz" style="display:none; text-align:center;">
-        <div class="login-box" style="margin: 0 auto; width: 100%;">
-            <span class="cat-tag" id="q-cat" style="background:var(--accent)">Category</span>
-            <p id="q-text" style="font-size: 1.2rem; margin: 20px 0;">Question goes here?</p>
-            <div id="q-options" style="display:flex; flex-direction:column; gap:10px;"></div>
+    <div id="sec-quiz" style="display:none">
+        <div class="login-box" style="margin:auto; width:100%">
+            <p id="q-text" style="font-size:1.1rem">Loading Question...</p>
+            <div id="q-options" style="display:flex; flex-direction:column; gap:10px"></div>
         </div>
     </div>
 
-    <div id="sec-contact" style="display:none;" class="recipe-grid"></div>
-    <div id="sec-docs" style="display:none;" class="recipe-grid"></div>
+    <div id="sec-contacts" style="display:none" class="grid"></div>
+
+    <div id="sec-docs" style="display:none" class="grid"></div>
 </div>
 
 <div id="popup-overlay">
     <div class="popup-box">
-        <h2 style="color:var(--error); margin:0;">INCORRECT</h2>
-        <p>Correct recipe for <strong id="p-name"></strong>:</p>
-        <div id="p-details" style="font-size:0.8rem; background:#f9f9f9; padding:15px; border-left:4px solid var(--accent);"></div>
-        <button class="tab-btn active" style="width:100%; margin-top:20px;" onclick="closePopup()">Next Question</button>
+        <h2 style="color:var(--error)">INCORRECT</h2>
+        <div id="p-details" style="margin:20px 0; text-align:left"></div>
+        <button class="tab-btn active" style="width:100%" onclick="closePopup()">Try Next</button>
     </div>
 </div>
 
 <script>
 const MASTER_PASS = "Refill2024";
+const API_URL = 'PASTE_YOUR_URL_HERE'; 
+let db = { recipes: [], contacts: [], documents: [] };
 let activeCat = "All";
 let currentQ = null;
 
-let data = []; // Start with an empty list
-
-// This function runs the moment the app opens
 async function loadData() {
     try {
-        // Replace 'https://script.google.com/macros/s/AKfycbwtTaWbqZouZV_CELHj5YkwXg0q4JKo3K2ZGZhKXnhLxNuf_KMHGADxGGfp4NK5BOx_/exec' with the link from your Google Script Deployment
-        const response = await fetch('YOUR_URL_HERE'); 
-        data = await response.json(); 
-        
-        renderCards(); // This draws the recipes on the screen
-        setupCatNav(); // This builds the category buttons
-    } catch (error) {
-        console.error("Connection failed: ", error);
-    }
+        const res = await fetch(API_URL);
+        db = await res.json();
+        setupCatNav();
+        renderRecipes();
+    } catch (e) { console.error("Data Load Failed"); }
 }
 
-// Update your window.onload to include loadData()
 window.onload = () => {
-    loadData(); // This triggers the fetch
-    setTimeout(() => { 
-        document.getElementById('splash-screen').style.opacity = '0'; 
-        setTimeout(() => document.getElementById('splash-screen').style.display='none', 600); 
-    }, 1500);
+    loadData();
+    setTimeout(() => { document.getElementById('splash-screen').style.opacity='0'; 
+    setTimeout(() => document.getElementById('splash-screen').style.display='none', 600); }, 2000);
 };
-
-const contacts = [
-    { name: "Shashikant Joshi", role: "Operations Manager", phone: "0528797089" },
-    { name: "Saad Khan", role: "Operations Manager", phone: "0565460813" }
-];
-
-const docs = [
-    { name: "Hand book", file: "https://drive.google.com/uc?export=download&id=1S3HEygyR1R8cVAzNKlb86m1jTSSjI5rh" }
-];
-
-window.onload = () => {
-    setTimeout(() => { document.getElementById('splash-screen').style.opacity = '0'; 
-    setTimeout(() => document.getElementById('splash-screen').style.display='none', 600); }, 1500);
-    setupCatNav();
-};
-
-function setupCatNav() {
-    const cats = ["Signature", "Espresso Based", "Milk Based", "Matcha", "Frappe", "Mojito", "NA", "Pour Over", "Batch", "Tea"];
-    const nav = document.getElementById('catNav');
-    cats.forEach(c => {
-        const b = document.createElement('button');
-        b.className = 'cat-filter-btn';
-        b.innerText = c;
-        b.onclick = () => filterCat(c, b);
-        nav.appendChild(b);
-    });
-}
 
 function checkAuth() {
     if(document.getElementById('passInput').value === MASTER_PASS) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
-        renderCards();
-    } else { alert("Wrong Password"); }
+    } else { alert("Access Denied"); }
 }
 
-function showTab(tab) {
-    const sections = ['browse', 'quiz', 'contact', 'docs'];
-    sections.forEach(s => {
-        document.getElementById('sec-' + s).style.display = (s === tab) ? (tab === 'quiz' ? 'block' : 'grid') : 'none';
-        document.getElementById('btn-' + s).classList.toggle('active', s === tab);
+function showTab(t) {
+    ['recipes','quiz','contacts','docs'].forEach(s => {
+        document.getElementById('sec-'+s).style.display = (s===t) ? (t==='quiz'?'block':'grid') : 'none';
+        document.getElementById('b-'+s).classList.toggle('active', s===t);
     });
-    if(tab === 'quiz') startQuiz();
-    if(tab === 'contact') renderContacts();
-    if(tab === 'docs') renderDocs();
+    if(t==='quiz') startQuiz();
+    if(t==='contacts') renderContacts();
+    if(t==='docs') renderDocs();
 }
 
-function filterCat(cat, btn) {
-    activeCat = cat;
-    document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderCards();
+function setupCatNav() {
+    const cats = [...new Set(db.recipes.map(r => r.cat))];
+    const nav = document.getElementById('catNav');
+    cats.forEach(c => {
+        const b = document.createElement('button');
+        b.className = 'cat-btn'; b.innerText = c;
+        b.onclick = () => filterCat(c, b);
+        nav.appendChild(b);
+    });
 }
 
-function renderCards() {
+function filterCat(c, b) {
+    activeCat = c;
+    document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+    b.classList.add('active');
+    renderRecipes();
+}
+
+function renderRecipes() {
     const grid = document.getElementById('recipeGrid');
     const q = document.getElementById('searchInput').value.toLowerCase();
     grid.innerHTML = '';
-    data.filter(r => (activeCat === "All" || r.cat === activeCat) && r.name.toLowerCase().includes(q)).forEach(r => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.onclick = () => div.classList.toggle('flipped');
-        div.innerHTML = `<div class="card-inner">
-            <div class="card-front"><span class="cat-tag" style="background:${r.color}">${r.cat}</span><h2>${r.name}</h2><small style="color:var(--accent)">TAP TO VIEW</small></div>
-            <div class="card-back"><strong>${r.name}</strong><span class="label">Ing</span><div class="content">${r.ing}</div><span class="label">Method</span><div class="content">${r.method}</div></div>
+    db.recipes.filter(r => (activeCat==="All" || r.cat===activeCat) && r.name.toLowerCase().includes(q)).forEach(r => {
+        const d = document.createElement('div');
+        d.className = 'card'; d.onclick = () => d.classList.toggle('flipped');
+        d.innerHTML = `<div class="card-inner">
+            <div class="card-front"><span class="cat-tag" style="background:${r.color}">${r.cat}</span><h2>${r.name}</h2></div>
+            <div class="card-back"><strong>${r.name}</strong><span class="label">Ing</span><div>${r.ing}</div><span class="label">Method</span><div>${r.method}</div></div>
         </div>`;
-        grid.appendChild(div);
+        grid.appendChild(d);
     });
 }
-
-function startQuiz() {
-    currentQ = data[Math.floor(Math.random() * data.length)];
-    document.getElementById('q-cat').innerText = currentQ.cat;
-    document.getElementById('q-text').innerText = "Which ingredients are for " + currentQ.name + "?";
-    let opts = [currentQ.ing];
-    while(opts.length < 4) { let r = data[Math.floor(Math.random()*data.length)].ing; if(!opts.includes(r)) opts.push(r); }
-    opts.sort(() => Math.random() - 0.5);
-    const container = document.getElementById('q-options');
-    container.innerHTML = '';
-    opts.forEach(o => {
-        const b = document.createElement('button');
-        b.className = 'tab-btn';
-        b.style.color = "white";
-        b.innerText = o;
-        b.onclick = () => (o === currentQ.ing) ? startQuiz() : showPopup();
-        container.appendChild(b);
-    });
-}
-
-function showPopup() {
-    document.getElementById('p-name').innerText = currentQ.name;
-    document.getElementById('p-details').innerHTML = `<strong>Ing:</strong> ${currentQ.ing}<br><strong>Method:</strong> ${currentQ.method}`;
-    document.getElementById('popup-overlay').style.display = 'flex';
-}
-function closePopup() { document.getElementById('popup-overlay').style.display = 'none'; startQuiz(); }
 
 function renderContacts() {
-    const grid = document.getElementById('sec-contact');
+    const grid = document.getElementById('sec-contacts');
     grid.innerHTML = '';
-    contacts.forEach(c => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.style.height = '200px';
-        div.innerHTML = `<div class="card-front"><h3>${c.name}</h3><p>${c.role}</p><a href="tel:${c.phone}" style="color:var(--accent); text-decoration:none; font-weight:bold;">CALL: ${c.phone}</a></div>`;
-        grid.appendChild(div);
+    db.contacts.forEach(c => {
+        grid.innerHTML += `<div class="card-front" style="height:150px"><h3>${c.name}</h3><p>${c.role}</p><a href="tel:${c.phone}" style="color:var(--accent)">${c.phone}</a></div>`;
     });
 }
 
 function renderDocs() {
     const grid = document.getElementById('sec-docs');
     grid.innerHTML = '';
-    docs.forEach(d => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.style.height = '150px';
-        div.innerHTML = `<div class="card-front"><h3>${d.name}</h3><a href="${d.file}" style="color:var(--accent); text-decoration:none; font-weight:bold;">DOWNLOAD</a></div>`;
-        grid.appendChild(div);
+    db.documents.forEach(d => {
+        grid.innerHTML += `<div class="card-front" style="height:150px"><h3>${d.name}</h3><a href="${d.file}" style="color:var(--accent)">VIEW PDF</a></div>`;
     });
 }
+
+function startQuiz() {
+    currentQ = db.recipes[Math.floor(Math.random()*db.recipes.length)];
+    document.getElementById('q-text').innerText = "Ingredients for " + currentQ.name + "?";
+    let opts = [currentQ.ing];
+    while(opts.length<4) { let r = db.recipes[Math.floor(Math.random()*db.recipes.length)].ing; if(!opts.includes(r)) opts.push(r); }
+    opts.sort(()=>Math.random()-0.5);
+    const container = document.getElementById('q-options');
+    container.innerHTML = '';
+    opts.forEach(o => {
+        const b = document.createElement('button'); b.className='tab-btn'; b.style.color="white"; b.innerText=o;
+        b.onclick = () => (o === currentQ.ing) ? startQuiz() : showPopup();
+        container.appendChild(b);
+    });
+}
+
+function showPopup() {
+    document.getElementById('p-details').innerHTML = `<strong>${currentQ.name}</strong><br><br>${currentQ.ing}`;
+    document.getElementById('popup-overlay').style.display='flex';
+}
+function closePopup() { document.getElementById('popup-overlay').style.display='none'; startQuiz(); }
 </script>
 </body>
 </html>
