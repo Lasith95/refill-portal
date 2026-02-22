@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Refill Reserve | Staff Portal</title>
-
+    <title>Refill Reserve | Professional Staff Portal</title>
+    
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="logo.png">
     <link rel="icon" type="image/png" href="logo.png">
     <meta name="theme-color" content="#0f1113">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <style>
         :root {
@@ -18,206 +20,323 @@
             --text-primary: #ffffff;
             --text-secondary: #a0a0a0;
             --error: #e74c3c;
+            --c-signature: #800000;
+            --c-espresso: #6f4e37;
+            --c-milk: #e67e22;
+            --c-matcha: #2ecc71;
+            --c-fruit: #d35400;
+            --c-manual: #3498db;
+            --c-batch: #7f8c8d;
+            --c-tea: #34495e;
+            --c-frappe: #964b00;
+            --c-mojito: #1abc9c;
+            --c-na: #607d8b;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-body); color: var(--text-primary); margin: 0; padding: 20px; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0; padding: 20px;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
 
-        /* SPLASH */
-        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20000; transition: opacity 0.6s; }
-        .splash-logo { width: 120px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1); opacity: 1; } }
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-body); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 20000;
+            transition: opacity 0.6s ease;
+        }
+        .splash-logo { width: 100px; height: auto; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1); opacity: 1; } }
 
-        /* LOGIN */
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; justify-content: center; align-items: center; z-index: 10000; }
-        .login-box { background: var(--bg-card); padding: 40px; border-radius: 8px; border: 1px solid var(--accent); text-align: center; width: 90%; max-width: 400px; }
-        input { padding: 15px; width: 100%; background: #252a2e; border: 1px solid #444; color: white; margin-bottom: 20px; border-radius: 4px; text-align: center; }
+        /* Authentication Overlay */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-body); display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .login-box {
+            background: var(--bg-card); padding: 50px; border-radius: 4px;
+            border: 1px solid var(--accent); text-align: center; width: 350px;
+        }
+        #passInput {
+            padding: 12px; border-radius: 4px; border: 1px solid #444;
+            background: #252a2e; color: white; width: 100%; margin-bottom: 20px; text-align: center; font-size: 1rem;
+        }
 
-        /* NAV */
-        h1 { font-size: 1.2rem; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; text-align: center; }
-        .nav-tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
-        .tab-btn { background: transparent; border: 1px solid #444; color: var(--text-secondary); padding: 10px 15px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; cursor: pointer; }
+        /* Layout */
+        #main-content { display: none; width: 100%; max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { font-size: 1.5rem; letter-spacing: 6px; color: var(--accent); text-transform: uppercase; margin: 0 0 25px 0; }
+
+        /* Tabs */
+        .nav-tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 30px; flex-wrap: wrap; }
+        .tab-btn {
+            background: transparent; border: 1px solid #444; color: var(--text-secondary);
+            padding: 10px 18px; border-radius: 4px; cursor: pointer; transition: 0.3s;
+            font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px;
+        }
         .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-        .category-nav { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: none; }
-        .cat-btn { white-space: nowrap; background: #1c1f22; border: 1px solid #333; color: #888; padding: 8px 15px; border-radius: 20px; font-size: 0.7rem; }
-        .cat-btn.active { border-color: var(--accent); color: var(--accent); }
+        /* Category Filter Navigation */
+        .category-nav {
+            display: flex; justify-content: flex-start; overflow-x: auto;
+            gap: 10px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #333;
+            scrollbar-width: none;
+        }
+        .category-nav::-webkit-scrollbar { display: none; }
+        .cat-filter-btn {
+            background: #1c1f22; border: 1px solid #333; color: var(--text-secondary);
+            padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.65rem;
+            text-transform: uppercase; white-space: nowrap; font-weight: bold;
+        }
+        .cat-filter-btn.active { border-color: var(--accent); color: var(--accent); background: #252a2e; }
 
-        .search-bar { width: 100%; padding: 15px; background: #1c1f22; border: 1px solid #333; border-bottom: 2px solid var(--accent); color: white; margin-bottom: 20px; }
+        .search-bar {
+            width: 100%; padding: 14px; background: #1c1f22; border: 1px solid #333;
+            border-radius: 4px; color: white; border-bottom: 2px solid var(--accent); font-size: 0.9rem; margin-bottom: 20px;
+        }
 
-        /* GRID & CARDS */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { height: 350px; perspective: 1000px; }
+        /* Card Display */
+        .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { height: 420px; perspective: 1000px; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
         .card.flipped .card-inner { transform: rotateY(180deg); }
-        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; padding: 20px; }
-        .card-front { background: var(--bg-card); border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        .card-back { background: #fff; color: #1a1a1a; transform: rotateY(180deg); overflow-y: auto; }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; padding: 25px; }
         
-        .cat-tag { font-size: 0.6rem; padding: 3px 8px; border-radius: 4px; color: #fff; text-transform: uppercase; margin-bottom: 10px; display: inline-block; }
-        .label { font-weight: 800; font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 10px; display: block; border-bottom: 1px solid #eee; }
+        .card-front { 
+            background: var(--bg-card); border: 1px solid #333; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; 
+        }
+        .card-back { background: #ffffff; color: #1a1a1a; transform: rotateY(180deg); overflow-y: auto; }
         
-        #popup-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:30000; justify-content:center; align-items:center; }
-        .popup-box { background:#fff; color:#000; padding:30px; border-radius:8px; width:90%; max-width:500px; }
+        .cat-tag { font-size: 0.6rem; padding: 4px 10px; color: white; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; border-radius: 4px; }
+        .label { display: block; font-weight: 800; font-size: 0.6rem; color: #888; text-transform: uppercase; margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+        .content { font-size: 0.9rem; color: #333; padding-top: 5px; }
+
+        /* Popups */
+        #popup-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.95); z-index: 30000; justify-content: center; align-items: center; 
+        }
+        .popup-box { background: #fff; color: #000; padding: 30px; border-radius: 8px; width: 90%; max-width: 500px; }
     </style>
 </head>
 <body>
 
-<div id="splash-screen"><img src="logo.png" class="splash-logo"></div>
+<div id="splash-screen">
+    <img src="logo.png" class="splash-logo" alt="Logo">
+</div>
 
 <div id="login-screen">
     <div class="login-box">
-        <h2 style="color:var(--accent)">REFILL ACCESS</h2>
+        <h2 style="color: var(--accent); letter-spacing: 3px; text-transform: uppercase;">Refill Access</h2>
         <input type="password" id="passInput" placeholder="Password">
-        <button class="tab-btn active" style="width:100%" onclick="checkAuth()">Login</button>
+        <button class="tab-btn active" style="width: 100%;" onclick="checkAuth()">Enter</button>
     </div>
 </div>
 
-<div id="main-content" style="display:none">
-    <h1>Refill Reserve</h1>
+<div id="main-content">
+    <header><h1>Refill Reserve</h1></header>
+
     <div class="nav-tabs">
-        <button class="tab-btn active" id="b-recipes" onclick="showTab('recipes')">Recipes</button>
-        <button class="tab-btn" id="b-quiz" onclick="showTab('quiz')">Quiz</button>
-        <button class="tab-btn" id="b-contacts" onclick="showTab('contacts')">Contacts</button>
-        <button class="tab-btn" id="b-docs" onclick="showTab('docs')">Docs</button>
+        <button class="tab-btn active" id="btn-browse" onclick="showTab('browse')">Recipes</button>
+        <button class="tab-btn" id="btn-quiz" onclick="showTab('quiz')">Quiz</button>
+        <button class="tab-btn" id="btn-contact" onclick="showTab('contact')">Contacts</button>
+        <button class="tab-btn" id="btn-docs" onclick="showTab('documents')">Docs</button>
     </div>
 
-    <div id="sec-recipes">
+    <div id="browse-section">
         <div class="category-nav" id="catNav">
-            <button class="cat-btn active" onclick="filterCat('All', this)">All</button>
-        </div>
-        <input type="text" id="searchInput" class="search-bar" placeholder="Search drinks..." onkeyup="renderRecipes()">
-        <div class="grid" id="recipeGrid"></div>
+            <button class="cat-filter-btn active" onclick="filterCat('All', this)">All</button>
+            </div>
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search drink name..." onkeyup="renderCards()">
+        <div class="recipe-grid" id="recipeGrid"></div>
     </div>
 
-    <div id="sec-quiz" style="display:none">
-        <div class="login-box" style="margin:auto; width:100%">
-            <p id="q-text" style="font-size:1.1rem">Loading Question...</p>
-            <div id="q-options" style="display:flex; flex-direction:column; gap:10px"></div>
+    <div id="quiz-section" style="display:none; text-align:center;">
+        <div class="login-box" style="width:100%; margin: 0 auto;">
+            <div class="cat-tag" id="q-cat" style="background:var(--accent); color:#000;">Category</div>
+            <div id="q-text" style="font-size: 1.2rem; margin: 20px 0;">Question?</div>
+            <div id="q-options" style="display:grid; gap:10px;"></div>
         </div>
     </div>
 
-    <div id="sec-contacts" style="display:none" class="grid"></div>
-
-    <div id="sec-docs" style="display:none" class="grid"></div>
+    <div id="contact-section" style="display:none;" class="recipe-grid"></div>
+    <div id="documents-section" style="display:none;" class="recipe-grid"></div>
 </div>
 
 <div id="popup-overlay">
     <div class="popup-box">
-        <h2 style="color:var(--error)">INCORRECT</h2>
-        <div id="p-details" style="margin:20px 0; text-align:left"></div>
-        <button class="tab-btn active" style="width:100%" onclick="closePopup()">Try Next</button>
+        <h2 style="color:var(--error); margin-top:0;">INCORRECT</h2>
+        <p>Correct recipe for <strong id="p-name"></strong>:</p>
+        <div id="p-details" style="font-size:0.8rem; background:#f9f9f9; padding:15px; border-left:4px solid var(--accent); text-align:left;"></div>
+        <button class="tab-btn active" style="width: 100%; margin-top:20px;" onclick="closePopup()">Next Question</button>
     </div>
 </div>
 
 <script>
+// --- CONFIGURATION ---
 const MASTER_PASS = "Refill2024";
-const API_URL = 'PASTE_YOUR_URL_HERE'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbyoaUeFbKX1ryoqOU2XKBy_Zn6fUgPfqsxJgaI7yUyNBPwdarXTEkxHxiw7_lzXl86F/exec'; 
+
+// --- DATA CONTAINERS ---
 let db = { recipes: [], contacts: [], documents: [] };
 let activeCat = "All";
 let currentQ = null;
 
-async function loadData() {
-    try {
-        const res = await fetch(API_URL);
-        db = await res.json();
-        setupCatNav();
-        renderRecipes();
-    } catch (e) { console.error("Data Load Failed"); }
-}
-
+// --- INITIAL LOAD ---
 window.onload = () => {
-    loadData();
-    setTimeout(() => { document.getElementById('splash-screen').style.opacity='0'; 
-    setTimeout(() => document.getElementById('splash-screen').style.display='none', 600); }, 2000);
+    loadLiveContent();
+    setTimeout(() => { 
+        document.getElementById('splash-screen').style.opacity = '0'; 
+        setTimeout(() => document.getElementById('splash-screen').style.display='none', 600); 
+    }, 2000);
 };
 
+// --- DATA FETCHING ---
+async function loadLiveContent() {
+    try {
+        const response = await fetch(API_URL);
+        const fetchedData = await response.json();
+        db.recipes = fetchedData.recipes || [];
+        db.contacts = fetchedData.contacts || [];
+        db.documents = fetchedData.documents || [];
+        
+        setupDynamicCategories();
+        renderCards();
+    } catch (e) {
+        console.log("Offline mode or error loading data.");
+    }
+}
+
+function setupDynamicCategories() {
+    const nav = document.getElementById('catNav');
+    const categories = [...new Set(db.recipes.map(r => r.cat))];
+    categories.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'cat-filter-btn';
+        btn.innerText = c;
+        btn.onclick = () => filterCat(c, btn);
+        nav.appendChild(btn);
+    });
+}
+
+// --- CORE FUNCTIONS ---
 function checkAuth() {
     if(document.getElementById('passInput').value === MASTER_PASS) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
-    } else { alert("Access Denied"); }
+    } else { alert("Wrong Password"); }
 }
 
-function showTab(t) {
-    ['recipes','quiz','contacts','docs'].forEach(s => {
-        document.getElementById('sec-'+s).style.display = (s===t) ? (t==='quiz'?'block':'grid') : 'none';
-        document.getElementById('b-'+s).classList.toggle('active', s===t);
-    });
-    if(t==='quiz') startQuiz();
-    if(t==='contacts') renderContacts();
-    if(t==='docs') renderDocs();
+function showTab(view) {
+    document.getElementById('browse-section').style.display = (view === 'browse') ? 'block' : 'none';
+    document.getElementById('quiz-section').style.display = (view === 'quiz') ? 'block' : 'none';
+    document.getElementById('contact-section').style.display = (view === 'contact') ? 'grid' : 'none';
+    document.getElementById('documents-section').style.display = (view === 'documents') ? 'grid' : 'none';
+    
+    document.getElementById('btn-browse').classList.toggle('active', view === 'browse');
+    document.getElementById('btn-quiz').classList.toggle('active', view === 'quiz');
+    document.getElementById('btn-contact').classList.toggle('active', view === 'contact');
+    document.getElementById('btn-docs').classList.toggle('active', view === 'documents');
+    
+    if(view === 'quiz') startQuiz();
+    if(view === 'contact') renderContacts();
+    if(view === 'documents') renderDocs();
 }
 
-function setupCatNav() {
-    const cats = [...new Set(db.recipes.map(r => r.cat))];
-    const nav = document.getElementById('catNav');
-    cats.forEach(c => {
-        const b = document.createElement('button');
-        b.className = 'cat-btn'; b.innerText = c;
-        b.onclick = () => filterCat(c, b);
-        nav.appendChild(b);
-    });
+function filterCat(cat, btn) {
+    activeCat = cat;
+    document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCards();
 }
 
-function filterCat(c, b) {
-    activeCat = c;
-    document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
-    b.classList.add('active');
-    renderRecipes();
-}
-
-function renderRecipes() {
+function renderCards() {
     const grid = document.getElementById('recipeGrid');
     const q = document.getElementById('searchInput').value.toLowerCase();
     grid.innerHTML = '';
-    db.recipes.filter(r => (activeCat==="All" || r.cat===activeCat) && r.name.toLowerCase().includes(q)).forEach(r => {
-        const d = document.createElement('div');
-        d.className = 'card'; d.onclick = () => d.classList.toggle('flipped');
-        d.innerHTML = `<div class="card-inner">
-            <div class="card-front"><span class="cat-tag" style="background:${r.color}">${r.cat}</span><h2>${r.name}</h2></div>
-            <div class="card-back"><strong>${r.name}</strong><span class="label">Ing</span><div>${r.ing}</div><span class="label">Method</span><div>${r.method}</div></div>
-        </div>`;
-        grid.appendChild(d);
+    
+    db.recipes.filter(r => (activeCat === "All" || r.cat === activeCat) && r.name.toLowerCase().includes(q))
+    .forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.onclick = () => div.classList.toggle('flipped');
+        div.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front">
+                    <span class="cat-tag" style="background:${r.color || '#d4af37'}">${r.cat}</span>
+                    <h2 style="font-weight:400;">${r.name}</h2>
+                    <small style="color:var(--accent); font-size:0.6rem;">TAP TO VIEW</small>
+                </div>
+                <div class="card-back">
+                    <h3 style="margin:0; font-size:1rem; color:var(--accent);">${r.name}</h3>
+                    <span class="label">Ingredients</span><div class="content">${r.ing}</div>
+                    <span class="label">Method</span><div class="content">${r.method}</div>
+                    <span class="label">Serving</span><div class="content">${r.serv}</div>
+                </div>
+            </div>`;
+        grid.appendChild(div);
     });
 }
 
 function renderContacts() {
-    const grid = document.getElementById('sec-contacts');
+    const grid = document.getElementById('contact-section');
     grid.innerHTML = '';
     db.contacts.forEach(c => {
-        grid.innerHTML += `<div class="card-front" style="height:150px"><h3>${c.name}</h3><p>${c.role}</p><a href="tel:${c.phone}" style="color:var(--accent)">${c.phone}</a></div>`;
+        grid.innerHTML += `<div class="card-front" style="height:180px;">
+            <h3 style="margin:0;">${c.name}</h3><p style="color:var(--accent); font-size:0.8rem;">${c.role}</p>
+            <a href="tel:${c.phone}" style="color:white; text-decoration:none; font-weight:bold;">${c.phone}</a>
+        </div>`;
     });
 }
 
 function renderDocs() {
-    const grid = document.getElementById('sec-docs');
+    const grid = document.getElementById('documents-section');
     grid.innerHTML = '';
     db.documents.forEach(d => {
-        grid.innerHTML += `<div class="card-front" style="height:150px"><h3>${d.name}</h3><a href="${d.file}" style="color:var(--accent)">VIEW PDF</a></div>`;
+        grid.innerHTML += `<div class="card-front" style="height:180px;">
+            <h3>${d.name}</h3>
+            <a href="${d.file}" target="_blank" style="background:var(--accent); color:black; padding:8px 20px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:0.7rem;">VIEW FILE</a>
+        </div>`;
     });
 }
 
 function startQuiz() {
-    currentQ = db.recipes[Math.floor(Math.random()*db.recipes.length)];
-    document.getElementById('q-text').innerText = "Ingredients for " + currentQ.name + "?";
+    currentQ = db.recipes[Math.floor(Math.random() * db.recipes.length)];
+    document.getElementById('q-text').innerText = "Identify the ingredients for: " + currentQ.name;
+    document.getElementById('q-cat').innerText = currentQ.cat;
+    
     let opts = [currentQ.ing];
-    while(opts.length<4) { let r = db.recipes[Math.floor(Math.random()*db.recipes.length)].ing; if(!opts.includes(r)) opts.push(r); }
-    opts.sort(()=>Math.random()-0.5);
+    while(opts.length < 4) {
+        let r = db.recipes[Math.floor(Math.random() * db.recipes.length)].ing;
+        if(!opts.includes(r)) opts.push(r);
+    }
+    opts.sort(() => Math.random() - 0.5);
+    
     const container = document.getElementById('q-options');
     container.innerHTML = '';
     opts.forEach(o => {
-        const b = document.createElement('button'); b.className='tab-btn'; b.style.color="white"; b.innerText=o;
-        b.onclick = () => (o === currentQ.ing) ? startQuiz() : showPopup();
+        const b = document.createElement('button');
+        b.className = 'tab-btn';
+        b.style.color = "white";
+        b.innerText = o;
+        b.onclick = () => (o === currentQ.ing) ? startQuiz() : showFailPopup();
         container.appendChild(b);
     });
 }
 
-function showPopup() {
-    document.getElementById('p-details').innerHTML = `<strong>${currentQ.name}</strong><br><br>${currentQ.ing}`;
-    document.getElementById('popup-overlay').style.display='flex';
+function showFailPopup() {
+    document.getElementById('p-name').innerText = currentQ.name;
+    document.getElementById('p-details').innerHTML = `<strong>Ingredients:</strong> ${currentQ.ing}<br><br><strong>Method:</strong> ${currentQ.method}`;
+    document.getElementById('popup-overlay').style.display = 'flex';
 }
-function closePopup() { document.getElementById('popup-overlay').style.display='none'; startQuiz(); }
+function closePopup() { document.getElementById('popup-overlay').style.display = 'none'; startQuiz(); }
 </script>
+
 </body>
 </html>
