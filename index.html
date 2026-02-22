@@ -118,6 +118,19 @@
         }
         .option-btn:hover { border-color: var(--accent); background: #1c1f22; }
 
+        /* Yield Calculator / Calibration Styles */
+        #calc-section, #dial-section { display: none; max-width: 800px; margin: 0 auto; }
+        .calc-box { background: var(--bg-card); padding: 40px; border-radius: 4px; border: 1px solid #333; text-align: center; }
+        .calc-input {
+            width: 100%; padding: 15px; background: #252a2e; border: 1px solid #444;
+            color: white; font-size: 1.2rem; text-align: center; border-radius: 4px; margin: 20px 0;
+        }
+        select.calc-input { font-size: 1rem; appearance: auto; }
+        .yield-display {
+            margin-top: 30px; padding: 20px; background: #15181a; border-radius: 4px; border: 1px dashed var(--accent);
+        }
+        .yield-value { font-size: 2.5rem; color: var(--accent); font-weight: bold; display: block; }
+
         /* Wrong Answer Popup */
         #popup-overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -157,6 +170,8 @@
     <div class="nav-tabs">
         <button class="tab-btn active" id="btn-browse" onclick="showTab('browse')">Recipe Cards</button>
         <button class="tab-btn" id="btn-quiz" onclick="showTab('quiz')">Staff Quiz</button>
+        <button class="tab-btn" id="btn-calc" onclick="showTab('calc')">Yield Calculator</button>
+        <button class="tab-btn" id="btn-dial" onclick="showTab('dial')">Espresso Calibration</button>
         <button class="tab-btn" id="btn-contact" onclick="showTab('contact')">Contact Details</button>
         <button class="tab-btn" id="btn-docs" onclick="showTab('documents')">Documents</button>
     </div>
@@ -188,6 +203,80 @@
             <span class="cat-tag" id="q-cat" style="background: var(--accent);">Category</span>
             <div class="question-text" id="q-text">Which ingredients belong to this drink?</div>
             <div class="options-grid" id="q-options"></div>
+        </div>
+    </div>
+
+    <div id="calc-section">
+        <div class="calc-box">
+            <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:30px;">Yield Calculator</h2>
+            <div class="category-nav" style="border:none;">
+                <button class="cat-filter-btn active" onclick="setCalcDevice('Espresso', 2, this)">Espresso (1:2)</button>
+                <button class="cat-filter-btn" onclick="setCalcDevice('V60', 15, this)">V60 (1:15)</button>
+                <button class="cat-filter-btn" onclick="setCalcDevice('Chemex', 15, this)">Chemex (1:15)</button>
+                <button class="cat-filter-btn" onclick="setCalcDevice('Aeropress', 10, this)">Aeropress (1:10)</button>
+            </div>
+            
+            <label class="label">Enter Coffee Dose (Grams)</label>
+            <input type="number" id="calcDose" class="calc-input" placeholder="0" oninput="calculateYield()">
+            
+            <div class="yield-display">
+                <span class="label">Target Yield (Output)</span>
+                <span class="yield-value"><span id="yieldResult">0</span>g</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="dial-section">
+        <div class="calc-box" style="text-align: left;">
+            <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:10px; text-align:center;">Espresso Compass Calibration</h2>
+            <p style="text-align:center; color:var(--text-secondary); font-size:0.85rem; margin-bottom:30px;">Enter your shot parameters and select the primary flavor note based on the Barista Hustle Espresso Compass.</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                <div>
+                    <span class="label">Dose (g)</span>
+                    <input type="number" id="dialDose" class="calc-input" placeholder="e.g. 18.0" step="0.1" style="margin: 10px 0;">
+                </div>
+                <div>
+                    <span class="label">Yield (g)</span>
+                    <input type="number" id="dialYield" class="calc-input" placeholder="e.g. 36.0" step="0.1" style="margin: 10px 0;">
+                </div>
+                <div>
+                    <span class="label">Time (sec)</span>
+                    <input type="number" id="dialTime" class="calc-input" placeholder="e.g. 28" style="margin: 10px 0;">
+                </div>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <span class="label">Primary Flavor Note</span>
+                <select id="dialFlavor" class="calc-input" style="margin: 10px 0; text-align:left;">
+                    <option value="">-- Select Flavor Profile --</option>
+                    <optgroup label="Under-extracted & Strong (Yellow Zone)">
+                        <option value="under">Overwhelming / Intense Sour / Salty</option>
+                        <option value="under">Strong / Substantial / Quick Finish</option>
+                    </optgroup>
+                    <optgroup label="Over-extracted & Weak (Red Zone)">
+                        <option value="over">Bitter / Dry / Powdery / Empty</option>
+                        <option value="over">Watery / Slender / Delicate</option>
+                        <option value="over">Bland / Thin / Generic</option>
+                    </optgroup>
+                    <optgroup label="Sweet Spot (Green Zone)">
+                        <option value="sweet">Sweet / Balanced / Tasty</option>
+                        <option value="sweet">Luscious / Rich / Fruity / Creamy</option>
+                        <option value="sweet">Nuanced / Fluffy / Transparent / Plump</option>
+                        <option value="sweet">Robust / Light / Ripe</option>
+                    </optgroup>
+                    <optgroup label="Uneven Extraction">
+                        <option value="uneven">Bitterness and Sourness Together</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <button class="tab-btn active" style="width: 100%; margin-top: 20px; font-size:1rem;" onclick="runCalibration()">Analyze & Guide</button>
+
+            <div id="dialResult" class="yield-display" style="display:none; text-align:left;">
+                <span class="label">System Recommendation</span>
+                <div id="dialMessage" class="content" style="color: white; margin-top: 15px; font-size: 0.95rem;"></div>
+            </div>
         </div>
     </div>
 
@@ -227,6 +316,7 @@
 <script>
 const MASTER_PASS = "Refill2024";
 let activeCat = "All";
+let currentRatio = 2;
 
 const data = [
     { name: "Short Black & White", cat: "Signature", color: "var(--c-signature)", ing: "Double shot, 150ml Spanish Premix.", method: "Extract the espresso into the cup,steam the the milk,pour it gently overthe espresso,and serve with smile.", eq: "Espresso Machine.", serv: "6oz Paper Cup." },
@@ -298,17 +388,90 @@ function checkAuth() {
 function showTab(view) {
     document.getElementById('browse-section').style.display = (view === 'browse') ? 'block' : 'none';
     document.getElementById('quiz-section').style.display = (view === 'quiz') ? 'block' : 'none';
+    document.getElementById('calc-section').style.display = (view === 'calc') ? 'block' : 'none';
+    document.getElementById('dial-section').style.display = (view === 'dial') ? 'block' : 'none';
     document.getElementById('contact-section').style.display = (view === 'contact') ? 'block' : 'none';
     document.getElementById('documents-section').style.display = (view === 'documents') ? 'block' : 'none';
     
     document.getElementById('btn-browse').classList.toggle('active', view === 'browse');
     document.getElementById('btn-quiz').classList.toggle('active', view === 'quiz');
+    document.getElementById('btn-calc').classList.toggle('active', view === 'calc');
+    document.getElementById('btn-dial').classList.toggle('active', view === 'dial');
     document.getElementById('btn-contact').classList.toggle('active', view === 'contact');
     document.getElementById('btn-docs').classList.toggle('active', view === 'documents');
     
     if(view === 'quiz') startNewQuestion();
     if(view === 'contact') renderContacts();
     if(view === 'documents') renderDocuments();
+}
+
+function setCalcDevice(device, ratio, btn) {
+    currentRatio = ratio;
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    calculateYield();
+}
+
+function calculateYield() {
+    const dose = document.getElementById('calcDose').value;
+    const result = (dose * currentRatio).toFixed(1);
+    document.getElementById('yieldResult').innerText = dose > 0 ? result : "0";
+}
+
+// Calibration Logic based on PDF guidelines
+function runCalibration() {
+    const flavor = document.getElementById('dialFlavor').value;
+    const resultBox = document.getElementById('dialResult');
+    const msgBox = document.getElementById('dialMessage');
+
+    if(!flavor) {
+        alert("Please select a primary flavor note to receive calibration guidance.");
+        return;
+    }
+
+    resultBox.style.display = 'block';
+    
+    let htmlContent = "";
+
+    if (flavor === "under") {
+        htmlContent = `
+            <strong style="color:var(--accent); font-size:1.1rem; display:block; margin-bottom:10px;">Status: Under-extracted and Strong (Yellow Zone)</strong>
+            <ul style="padding-left:20px; line-height:1.8;">
+                <li><strong>Increase Yield:</strong> Move towards the green spot. [cite_start]"When adjusting yield, do not change the dose[cite: 4]."</li>
+                [cite_start]<li><strong>Improve Extraction & Extract More:</strong> "Increase your extraction by making it more even or using a finer grind setting (time increase)[cite: 2]."</li>
+                <li><strong>Note on Grinding:</strong> "Time will change as a result. [cite_start]Only adjust grind if your shot time is too far off[cite: 5]."</li>
+            </ul>
+        `;
+    } else if (flavor === "over") {
+        htmlContent = `
+            <strong style="color:var(--accent); font-size:1.1rem; display:block; margin-bottom:10px;">Status: Over-extracted and Weak (Red Zone)</strong>
+            <ul style="padding-left:20px; line-height:1.8;">
+                <li><strong>Decrease Yield:</strong> Pull a shorter shot to regain strength and reduce extraction of bitter compounds.</li>
+                [cite_start]<li><strong>Extract Less:</strong> Use a slightly coarser grind. "Don't grind too fine or extraction will become uneven and decline[cite: 3]."</li>
+                [cite_start]<li><strong>Dose Rules:</strong> "When adjusting yield, do not change the dose[cite: 4]."</li>
+            </ul>
+        `;
+    } else if (flavor === "uneven") {
+        htmlContent = `
+            <strong style="color:var(--accent); font-size:1.1rem; display:block; margin-bottom:10px;">Status: Uneven Extraction (Channeling)</strong>
+            <ul style="padding-left:20px; line-height:1.8;">
+                [cite_start]<li><strong>Diagnosis:</strong> "If you're tasting bitterness and sourness together, your extraction is likely uneven because they can co-exist there[cite: 7]."</li>
+                [cite_start]<li><strong>Action Required:</strong> "Improve your extraction by distributing grinds evenly, and using a good grinder/ flat and snug tamper/VST baskets/ a well developed roast[cite: 1]."</li>
+            </ul>
+        `;
+    } else if (flavor === "sweet") {
+        htmlContent = `
+            <strong style="color:#2ecc71; font-size:1.1rem; display:block; margin-bottom:10px;">Status: The Sweet Spot (Green Zone)</strong>
+            <ul style="padding-left:20px; line-height:1.8;">
+                <li><strong>Excellent Job!</strong> You are perfectly calibrated.</li>
+                [cite_start]<li>"An even extraction has more room for Barista expression and exploration of the coffee's unique flavours without distraction[cite: 7]."</li>
+                <li>Lock in your current Dose, Yield, and Time settings for today's service!</li>
+            </ul>
+        `;
+    }
+
+    msgBox.innerHTML = htmlContent;
 }
 
 function filterCat(cat, btn) {
@@ -398,7 +561,6 @@ function renderDocuments() {
         const isHandbook = d.name === "Hand book";
         const btnText = isHandbook ? "Open & Read" : "Download File";
         
-        // Use Javascript void for handbook to prevent default download behavior
         const linkHref = isHandbook ? "javascript:void(0)" : d.file;
         const clickAction = isHandbook ? `onclick="openPDF('${d.file}')"` : "";
         const downloadAttr = isHandbook ? "" : "download";
