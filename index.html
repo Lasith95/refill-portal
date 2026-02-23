@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refill Reserve | Staff Portal</title>
+    
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Refill">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #0f1113;
+            --bg-card: #1c1f22;
+            --accent: #d4af37;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --error: #e74c3c;
+            --whatsapp: #25D366;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0; padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-body); display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .login-box {
+            background: var(--bg-card); padding: 50px; border-radius: 4px;
+            border: 1px solid var(--accent); text-align: center; width: 350px;
+        }
+        #passInput {
+            padding: 12px; border-radius: 4px; border: 1px solid #444;
+            background: #252a2e; color: white; width: 100%; margin-bottom: 20px; text-align: center;
+        }
+
+        /* Layout & Navigation */
+        #main-content { display: none; width: 100%; max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { font-size: 1.8rem; letter-spacing: 8px; color: var(--accent); text-transform: uppercase; margin: 0 0 25px 0; }
+
+        .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .tab-btn {
+            background: transparent; border: 1px solid #444; color: var(--text-secondary);
+            padding: 12px 25px; border-radius: 4px; cursor: pointer; transition: 0.3s;
+            font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;
+        }
+        .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        /* Filters & Search */
+        .category-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #333; }
+        .cat-filter-btn {
+            background: #1c1f22; border: 1px solid #333; color: var(--text-secondary);
+            padding: 8px 16px; border-radius: 2px; cursor: pointer; font-size: 0.7rem;
+            text-transform: uppercase; transition: 0.2s; font-weight: bold;
+        }
+        .cat-filter-btn.active { border-color: var(--accent); color: var(--accent); background: #252a2e; }
+
+        .search-container { text-align: center; margin-bottom: 30px; }
+        .search-bar {
+            width: 100%; max-width: 500px; padding: 14px 25px;
+            background: #1c1f22; border: 1px solid #333; border-radius: 4px;
+            color: white; outline: none; border-bottom: 2px solid var(--accent); font-size: 1rem;
+        }
+
+        /* The Professional Flip Card */
+        .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .card { height: 500px; perspective: 1000px; cursor: pointer; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 4px; padding: 30px; }
+        
+        .card-front { 
+            background: var(--bg-card); border: 1px solid #333; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; 
+        }
+        .card-back { background: #ffffff; color: #1a1a1a; transform: rotateY(180deg); overflow-y: auto; }
+        
+        .cat-tag { font-size: 0.65rem; padding: 4px 12px; color: white; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; border-radius: 2px; }
+        .label { display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase; margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+        .content { font-size: 0.95rem; color: #333; padding-top: 5px; font-weight: 400; }
+
+        /* Buttons within cards */
+        .action-btn {
+            display: block; width: 100%; padding: 12px; margin-top: 10px;
+            border-radius: 4px; text-align: center; text-decoration: none;
+            font-weight: bold; font-size: 0.8rem; text-transform: uppercase; transition: 0.2s;
+        }
+
+        /* Calculator & Calibration Styles */
+        .calc-box { background: var(--bg-card); padding: 40px; border-radius: 4px; border: 1px solid #333; max-width: 800px; margin: 0 auto; }
+        .calc-input {
+            width: 100%; padding: 15px; background: #252a2e; border: 1px solid #444;
+            color: white; font-size: 1.2rem; text-align: center; border-radius: 4px; margin: 20px 0;
+        }
+        .yield-display { margin-top: 30px; padding: 20px; background: #15181a; border-radius: 4px; border: 1px dashed var(--accent); text-align: center; }
+        .yield-value { font-size: 2.5rem; color: var(--accent); font-weight: bold; }
+
+        @media (max-width: 600px) { h1 { font-size: 1.4rem; } .nav-tabs { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="login-box">
+        <h2 style="color: var(--accent); letter-spacing: 4px; text-transform: uppercase;">Refill Access</h2>
+        <input type="password" id="passInput" placeholder="Enter Password">
+        <button class="tab-btn active" style="width: 100%;" onclick="checkAuth()">Enter Dashboard</button>
+        <p id="loadingStatus" style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 15px;">Loading Live Data...</p>
+    </div>
+</div>
+
+<div id="main-content">
+    <header><h1>Refill Reserve</h1></header>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" id="btn-browse" onclick="showTab('browse')">Recipes</button>
+        <button class="tab-btn" id="btn-calc" onclick="showTab('calc')">Yield Calc</button>
+        <button class="tab-btn" id="btn-dial" onclick="showTab('dial')">Calibration</button>
+        <button class="tab-btn" id="btn-contact" onclick="showTab('contact')">Contacts</button>
+        <button class="tab-btn" id="btn-docs" onclick="showTab('documents')">Documents</button>
+    </div>
+
+    <div id="browse-section">
+        <div class="category-nav">
+            <button class="cat-filter-btn active" onclick="filterCat('All', this)">All</button>
+            <button class="cat-filter-btn" onclick="filterCat('Signature', this)">Signature</button>
+            <button class="cat-filter-btn" onclick="filterCat('Espresso Based', this)">Espresso</button>
+            <button class="cat-filter-btn" onclick="filterCat('Milk Based', this)">Milk Based</button>
+            <button class="cat-filter-btn" onclick="filterCat('Frappe', this)">Frappe</button>
+        </div>
+        <div class="search-container">
+            <input type="text" id="recipeSearch" class="search-bar" placeholder="Search drinks..." onkeyup="renderRecipes()">
+        </div>
+        <div class="recipe-grid" id="recipeGrid"></div>
+    </div>
+
+    <div id="contact-section" style="display:none;">
+        <div class="search-container">
+            <input type="text" id="contactSearch" class="search-bar" placeholder="Search staff..." onkeyup="renderContacts()">
+            <div style="margin-top:15px;">
+                <a href="https://chat.whatsapp.com/YOUR_GROUP_LINK" target="_blank" class="action-btn" style="background:var(--error); color:white; max-width:300px; margin: 0 auto;">Message Staff Group</a>
+            </div>
+        </div>
+        <div class="recipe-grid" id="contactGrid"></div>
+    </div>
+
+    <div id="documents-section" style="display:none;">
+        <div class="recipe-grid" id="docsGrid"></div>
+    </div>
+
+    <div id="calc-section" style="display:none;">
+        <div class="calc-box">
+            <h2 style="color:var(--accent); text-transform:uppercase;">Yield Calculator</h2>
+            <input type="number" id="calcDose" class="calc-input" placeholder="Dose (Grams)" oninput="calculateYield()">
+            <div class="yield-display"><span class="yield-value" id="yieldResult">0</span>g Output</div>
+        </div>
+    </div>
+
+    <div id="dial-section" style="display:none;">
+        <div class="calc-box">
+            <h2 style="color:var(--accent); text-transform:uppercase;">Espresso Calibration</h2>
+            <p style="color:var(--text-secondary); font-size:0.8rem;">Select the primary taste note of the shot:</p>
+            <select id="dialFlavor" class="calc-input" onchange="runCalibration()">
+                <option value="">-- Select Flavor --</option>
+                <option value="sour">Sour / Salty / Sharp</option>
+                <option value="bitter">Bitter / Dry / Hollow</option>
+                <option value="sweet">Sweet / Balanced / Rich</option>
+            </select>
+            <div id="dialMessage" class="yield-display" style="display:none; text-align:left; color:white; font-size:0.9rem;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const MASTER_PASS = "Refill2024";
+let data = [], contactData = [], docData = [];
+let activeRecipeCat = "All";
+
+const CONFIG = {
+    recipes: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ13wVqduebIg7mNo0ppS0BGucdTT8rviaMw6-FZcATLyJ11aBE8809JXrTzzQlsjAPuyJTy0R1H9qg/pub?gid=0&single=true&output=csv",
+    contacts: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ13wVqduebIg7mNo0ppS0BGucdTT8rviaMw6-FZcATLyJ11aBE8809JXrTzzQlsjAPuyJTy0R1H9qg/pub?gid=868158229&single=true&output=csv",
+    docs: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ13wVqduebIg7mNo0ppS0BGucdTT8rviaMw6-FZcATLyJ11aBE8809JXrTzzQlsjAPuyJTy0R1H9qg/pub?gid=1810968270&single=true&output=csv"
+};
+
+// AUTO LOAD LIVE DATA
+window.onload = function() {
+    let filesLoaded = 0;
+    const check = () => { if(++filesLoaded === 3) document.getElementById('loadingStatus').innerText = "System Ready."; };
+    
+    Papa.parse(CONFIG.recipes, { download: true, header: true, complete: r => { data = r.data; check(); } });
+    Papa.parse(CONFIG.contacts, { download: true, header: true, complete: r => { contactData = r.data; check(); } });
+    Papa.parse(CONFIG.docs, { download: true, header: true, complete: r => { docData = r.data; check(); } });
+};
+
+function checkAuth() {
+    if(document.getElementById('passInput').value === MASTER_PASS) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        renderRecipes();
+    } else { alert("Wrong Password"); }
+}
+
+// RENDER RECIPES (Smart Mapping)
+function renderRecipes() {
+    const grid = document.getElementById('recipeGrid');
+    grid.innerHTML = '';
+    const search = document.getElementById('recipeSearch').value.toLowerCase();
+    
+    data.forEach(item => {
+        const name = item.name || item.Name || item.Drink || '';
+        const cat = item.cat || item.Category || '';
+        const color = item.color || item.Color || 'var(--accent)';
+        const ing = item.ing || item.Ingredients || '---';
+        const method = item.method || item.Method || '---';
+        const eq = item.eq || item.Equipment || '---';
+        const serv = item.serv || item.Serving || '---';
+
+        if(activeRecipeCat !== 'All' && cat !== activeRecipeCat) return;
+        if(search && !name.toLowerCase().includes(search)) return;
+
+        grid.innerHTML += `
+            <div class="card" onclick="this.classList.toggle('flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <span class="cat-tag" style="background:${color}">${cat}</span>
+                        <h2>${name}</h2>
+                        <p style="color:var(--text-secondary); font-size:0.75rem;">Tap to view recipe</p>
+                    </div>
+                    <div class="card-back">
+                        <h3 style="color:var(--accent); margin-top:0;">${name}</h3>
+                        <span class="label">Ingredients</span><div class="content">${ing}</div>
+                        <span class="label">Method</span><div class="content">${method}</div>
+                        <span class="label">Equipment</span><div class="content">${eq}</div>
+                        <span class="label">Serving</span><div class="content">${serv}</div>
+                    </div>
+                </div>
+            </div>`;
+    });
+}
+
+// RENDER CONTACTS (Flip Card + WhatsApp)
+function renderContacts() {
+    const grid = document.getElementById('contactGrid');
+    grid.innerHTML = '';
+    const search = document.getElementById('contactSearch').value.toLowerCase();
+
+    contactData.forEach(item => {
+        const name = item.name || item.Name || '';
+        const role = item.role || item.Role || 'Staff';
+        const phone = item.phone || item.Phone || '';
+        const loc = item.location || item.Location || 'Main Store';
+        const cleanPhone = phone.replace(/\D/g, ''); // Fixes number for WhatsApp
+
+        if(search && !name.toLowerCase().includes(search) && !role.toLowerCase().includes(search)) return;
+
+        grid.innerHTML += `
+            <div class="card" onclick="this.classList.toggle('flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <span class="cat-tag" style="background:var(--accent)">STAFF</span>
+                        <h2>${name}</h2>
+                        <p style="color:var(--text-secondary)">${role}</p>
+                    </div>
+                    <div class="card-back">
+                        <h3 style="color:var(--accent); margin-top:0;">${name}</h3>
+                        <span class="label">Position</span><div class="content">${role}</div>
+                        <span class="label">Assigned To</span><div class="content">${loc}</div>
+                        <span class="label">Phone</span><div class="content">${phone}</div>
+                        <div style="margin-top:20px;">
+                            <a href="tel:${phone}" class="action-btn" style="background:#444; color:white;">Call Now</a>
+                            <a href="https://wa.me/${cleanPhone}" target="_blank" class="action-btn" style="background:var(--whatsapp); color:white; border:none;">WhatsApp</a>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    });
+}
+
+// RENDER DOCUMENTS
+function renderDocuments() {
+    const grid = document.getElementById('docsGrid');
+    grid.innerHTML = '';
+    docData.forEach(item => {
+        const name = item.name || item.Name || '';
+        const desc = item.description || item.Description || '';
+        const link = item.file || item.File || item.Link || '#';
+
+        grid.innerHTML += `
+            <div class="card" onclick="this.classList.toggle('flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <span class="cat-tag" style="background:var(--error)">DOC</span>
+                        <h2>${name}</h2>
+                    </div>
+                    <div class="card-back">
+                        <h3 style="color:var(--accent); margin-top:0;">${name}</h3>
+                        <span class="label">Summary</span><div class="content">${desc}</div>
+                        <a href="${link}" target="_blank" class="action-btn" style="background:var(--accent); color:black; margin-top:30px;">Open Document</a>
+                    </div>
+                </div>
+            </div>`;
+    });
+}
+
+// TAB & FILTER LOGIC
+function showTab(view) {
+    const views = ['browse', 'calc', 'dial', 'contact', 'documents'];
+    views.forEach(v => document.getElementById(v + '-section').style.display = (view === v) ? 'block' : 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + view).classList.add('active');
+    
+    if(view === 'contact') renderContacts();
+    if(view === 'documents') renderDocuments();
+    if(view === 'browse') renderRecipes();
+}
+
+function filterCat(cat, btn) {
+    activeRecipeCat = cat;
+    document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderRecipes();
+}
+
+// CALC LOGIC
+function calculateYield() {
+    const dose = document.getElementById('calcDose').value;
+    document.getElementById('yieldResult').innerText = dose ? (dose * 2).toFixed(1) : "0";
+}
+
+function runCalibration() {
+    const flavor = document.getElementById('dialFlavor').value;
+    const msg = document.getElementById('dialMessage');
+    msg.style.display = 'block';
+    if(flavor === 'sour') msg.innerHTML = "<strong>Under-extracted:</strong> Increase your Yield (longer shot) or grind finer.";
+    else if(flavor === 'bitter') msg.innerHTML = "<strong>Over-extracted:</strong> Decrease your Yield (shorter shot) or grind coarser.";
+    else if(flavor === 'sweet') msg.innerHTML = "<strong>Perfect:</strong> No adjustment needed. Coffee is dialed in.";
+    else msg.style.display = 'none';
+}
+</script>
+</body>
+</html>
