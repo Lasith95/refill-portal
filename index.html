@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refill Reserve | Professional Staff Portal</title>
+    
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Refill">
+    <link rel="manifest" href="manifest.json">
+
+    <style>
+        :root {
+            --bg-body: #0f1113;
+            --bg-card: #1c1f22;
+            --accent: #d4af37;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --error: #e74c3c;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0; padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* Authentication Overlay */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-body); display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .login-box {
+            background: var(--bg-card);
+            padding: 50px; border-radius: 4px;
+            border: 1px solid var(--accent); text-align: center; width: 350px;
+        }
+        #passInput {
+            padding: 12px;
+            border-radius: 4px; border: 1px solid #444;
+            background: #252a2e; color: white; width: 100%; margin-bottom: 20px; text-align: center;
+        }
+
+        /* Main Content */
+        #main-content { display: none; width: 100%; max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { font-size: 1.8rem; letter-spacing: 8px; color: var(--accent); text-transform: uppercase; margin: 0 0 25px 0; }
+
+        /* Navigation */
+        .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid #444; color: var(--text-secondary);
+            padding: 12px 25px; border-radius: 4px; cursor: pointer; transition: 0.3s;
+            font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;
+        }
+        .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        .tab-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+        .category-nav {
+            display: flex; justify-content: center; flex-wrap: wrap; 
+            gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #333;
+        }
+        .cat-filter-btn {
+            background: #1c1f22; border: 1px solid #333; color: var(--text-secondary);
+            padding: 8px 16px; border-radius: 2px; cursor: pointer; font-size: 0.7rem;
+            text-transform: uppercase; transition: 0.2s; font-weight: bold;
+        }
+        .cat-filter-btn.active { border-color: var(--accent); color: var(--accent); background: #252a2e; }
+
+        /* Card Styles */
+        .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .card { height: 500px; perspective: 1000px; cursor: pointer; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 4px; padding: 30px; }
+        .card-front { background: var(--bg-card); border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .card-back { background: #ffffff; color: #1a1a1a; transform: rotateY(180deg); overflow-y: auto; }
+        
+        .cat-tag { font-size: 0.65rem; padding: 4px 12px; color: white; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; border-radius: 2px; }
+        .label { display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase; margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+        .content { font-size: 0.95rem; color: #333; padding-top: 5px; }
+
+        /* Sections */
+        #quiz-section, #calc-section, #dial-section, #trouble-section, #contact-section, #docs-section { display: none; max-width: 900px; margin: 0 auto; }
+        .quiz-box, .calc-box { background: var(--bg-card); padding: 50px; border-radius: 4px; border: 1px solid #333; text-align: center; }
+        .calc-input { width: 100%; padding: 15px; background: #252a2e; border: 1px solid #444; color: white; font-size: 1.2rem; text-align: center; border-radius: 4px; margin: 20px 0; }
+        .yield-display { margin-top: 30px; padding: 20px; background: #15181a; border-radius: 4px; border: 1px dashed var(--accent); }
+        .yield-value { font-size: 2.5rem; color: var(--accent); font-weight: bold; display: block; }
+
+        /* Popups */
+        #popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; justify-content: center; align-items: center; }
+        .popup-box { background: #fff; color: #000; padding: 40px; border-radius: 4px; max-width: 600px; width: 90%; }
+        
+        @media (max-width: 600px) { h1 { font-size: 1.4rem; } .nav-tabs { flex-direction: column; } }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="login-box">
+        <h2 style="color: var(--accent); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 25px;">Refill Access</h2>
+        <input type="password" id="passInput" placeholder="Enter Password">
+        <button class="tab-btn active" style="width: 100%;" onclick="checkAuth()">Enter Dashboard</button>
+    </div>
+</div>
+
+<div id="main-content">
+    <header><h1>Refill Reserve</h1></header>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" id="btn-browse" onclick="showTab('browse')">Recipe Cards</button>
+        <button class="tab-btn" id="btn-quiz" onclick="showTab('quiz')">Staff Quiz</button>
+        <button class="tab-btn" id="btn-calc" onclick="showTab('calc')">Yield Calculator</button>
+        <button class="tab-btn" id="btn-dial" onclick="showTab('dial')">Espresso Calibration</button>
+        <button class="tab-btn" id="btn-trouble" onclick="showTab('trouble')">Troubleshooting</button>
+    </div>
+
+    <div id="browse-section">
+        <div class="category-nav">
+            <button class="cat-filter-btn active" onclick="filterCat('All', this)">All</button>
+            <button class="cat-filter-btn" onclick="filterCat('Signature', this)">Signature</button>
+            <button class="cat-filter-btn" onclick="filterCat('Espresso Based', this)">Espresso</button>
+            <button class="cat-filter-btn" onclick="filterCat('Milk Based', this)">Milk Based</button>
+        </div>
+        <div class="recipe-grid" id="recipeGrid"></div>
+    </div>
+
+    <div id="quiz-section">
+        <div class="quiz-box">
+            <span class="cat-tag" id="q-cat" style="background: var(--accent);">Category</span>
+            <div id="q-text" style="font-size: 1.6rem; margin: 25px 0;">Question goes here?</div>
+            <div class="recipe-grid" id="q-options" style="grid-template-columns: 1fr; gap: 10px;"></div>
+        </div>
+    </div>
+
+    <div id="calc-section">
+        <div class="calc-box">
+            <h2>Yield Calculator</h2>
+            <input type="number" id="calcDose" class="calc-input" placeholder="Dose in Grams" oninput="calculateYield()">
+            <div class="yield-display">
+                <span class="label">Target Yield</span>
+                <span class="yield-value"><span id="yieldResult">0</span>g</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="dial-section">
+        <div class="calc-box">
+            <h2>Espresso Calibration</h2>
+            <select id="dialFlavor" class="calc-input">
+                <option value="">-- How does it taste? --</option>
+                <option value="under">Sour / Salty / Puckering</option>
+                <option value="over">Bitter / Astringent / Dry</option>
+                <option value="sweet">Sweet / Balanced</option>
+            </select>
+            <button class="tab-btn active" style="width: 100%;" onclick="runCalibration()">Analyze</button>
+            <div id="dialResult" class="yield-display" style="display:none;">
+                <p id="dialMessage" style="color:white;"></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="trouble-section">
+        <div class="calc-box">
+            <h2>Troubleshooting</h2>
+            <label class="label">Step 1: Category</label>
+            <select id="troubleCat" class="calc-input" onchange="updateIssueList()">
+                <option value="">-- Select --</option>
+                <option value="Grinders">Grinders</option>
+                <option value="Espresso Machines">Espresso Machines</option>
+                <option value="Drinks">Drinks</option>
+            </select>
+            <label class="label">Step 2: Issue</label>
+            <select id="troubleIssue" class="calc-input">
+                <option value="">-- Choose Category First --</option>
+            </select>
+            <button class="tab-btn active" style="width: 100%;" onclick="showTroubleSolution()">Get Solution</button>
+        </div>
+    </div>
+</div>
+
+<div id="popup-overlay">
+    <div class="popup-box">
+        <h2 id="p-header" style="color:var(--accent); margin-top:0;">INFO</h2>
+        <p><strong id="p-name"></strong></p>
+        <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 4px; border-left: 4px solid var(--accent);">
+            <span class="label" id="l1">Detail 1</span><div id="p-ing" class="content"></div>
+            <span class="label" id="l2">Detail 2</span><div id="p-meth" class="content"></div>
+            <span class="label" id="l3">Detail 3</span><div id="p-eq" class="content"></div>
+        </div>
+        <button class="tab-btn active" style="width: 100%; margin-top: 20px;" onclick="closePopup()">Close</button>
+    </div>
+</div>
+
+<script>
+const MASTER_PASS = "Refill2024";
+let data = [
+    { name: "Espresso", cat: "Espresso Based", color: "#6f4e37", ing: "19g Dose", method: "28-30s extraction", eq: "La Marzocco", serv: "Ceramic Cup" },
+    { name: "Cortado", cat: "Milk Based", color: "#e67e22", ing: "Double Shot, 2oz Milk", method: "Steam to 55C", eq: "Pitcher", serv: "4oz Glass" }
+];
+
+const troubleshootingData = [
+    { cat: "Grinders", issue: "Blocked - motor sounds but nothing out", diag: "Hopper gate closed or grind too fine.", treat: "Vacuum out retained grinds." },
+    { cat: "Espresso Machines", issue: "Group head leaking during shot", diag: "Worn gasket or residue.", treat: "Clean gasket or replace twice a year." },
+    { cat: "Drinks", issue: "Coffee grinds in customer cup", diag: "Grinds on spouts or blunt burrs.", treat: "Tamp with spouts off bench." }
+];
+
+// LOGIN LOGIC
+function checkAuth() {
+    const input = document.getElementById('passInput').value;
+    if(input === MASTER_PASS) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        renderCards();
+    } else {
+        alert("Incorrect password. Please try again.");
+        document.getElementById('passInput').value = "";
+    }
+}
+
+// Support Enter Key
+document.getElementById('passInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') checkAuth();
+});
+
+function showTab(view) {
+    ['browse', 'quiz', 'calc', 'dial', 'trouble'].forEach(s => document.getElementById(s + '-section').style.display = (view === s) ? 'block' : 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + view).classList.add('active');
+    if(view === 'quiz') startNewQuestion();
+}
+
+function renderCards() {
+    const grid = document.getElementById('recipeGrid');
+    grid.innerHTML = '';
+    data.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.onclick = () => div.classList.toggle('flipped');
+        div.innerHTML = `<div class="card-inner">
+            <div class="card-front"><span class="cat-tag" style="background:${r.color}">${r.cat}</span><h2>${r.name}</h2></div>
+            <div class="card-back"><h3>${r.name}</h3><span class="label">Ing</span><div>${r.ing}</div><span class="label">Method</span><div>${r.method}</div></div>
+        </div>`;
+        grid.appendChild(div);
+    });
+}
+
+function updateIssueList() {
+    const cat = document.getElementById('troubleCat').value;
+    const sel = document.getElementById('troubleIssue');
+    sel.innerHTML = '<option value="">-- Select --</option>';
+    troubleshootingData.filter(i => i.cat === cat).forEach(i => {
+        const opt = document.createElement('option');
+        opt.value = i.issue; opt.innerText = i.issue; sel.appendChild(opt);
+    });
+}
+
+function showTroubleSolution() {
+    const issue = document.getElementById('troubleIssue').value;
+    const item = troubleshootingData.find(i => i.issue === issue);
+    if(!item) return;
+    document.getElementById('p-header').innerText = "SOLUTION";
+    document.getElementById('l1').innerText = "ISSUE";
+    document.getElementById('l2').innerText = "DIAGNOSIS";
+    document.getElementById('l3').innerText = "TREATMENT";
+    document.getElementById('p-ing').innerText = item.issue;
+    document.getElementById('p-meth').innerText = item.diag;
+    document.getElementById('p-eq').innerText = item.treat;
+    document.getElementById('popup-overlay').style.display = 'flex';
+}
+
+function runCalibration() {
+    const flavor = document.getElementById('dialFlavor').value;
+    const res = document.getElementById('dialResult');
+    const msg = document.getElementById('dialMessage');
+    res.style.display = 'block';
+    if(flavor === 'under') msg.innerText = "Under-extracted: Adjust Grind FINER. Increase Yield for strength.";
+    else if(flavor === 'over') msg.innerText = "Over-extracted: Adjust Grind COARSER. Decrease Yield.";
+    else msg.innerText = "Sweet Spot! Keep settings as they are.";
+}
+
+function calculateYield() {
+    const dose = document.getElementById('calcDose').value;
+    document.getElementById('yieldResult').innerText = dose ? (dose * 2).toFixed(1) : "0";
+}
+
+function closePopup() { document.getElementById('popup-overlay').style.display = 'none'; }
+</script>
+</body>
+</html>
