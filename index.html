@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refill Reserve | Professional Staff Portal</title>
+    
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Refill">
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #0f1113;
+            --bg-card: #1c1f22;
+            --accent: #d4af37;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --error: #e74c3c;
+            /* Categories */
+            --c-signature: #800000;
+            --c-espresso: #6f4e37;
+            --c-milk: #e67e22;
+            --c-matcha: #2ecc71;
+            --c-fruit: #d35400;
+            --c-manual: #3498db;
+            --c-batch: #7f8c8d;
+            --c-tea: #34495e;
+            --c-frappe: #964b00;
+            --c-mojito: #1abc9c;
+            --c-na: #607d8b;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            margin: 0; padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* Scrollbar Styling for native table view */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1c1f22; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* Authentication Overlay */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-body); display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .login-box {
+            background: var(--bg-card);
+            padding: 50px; border-radius: 4px;
+            border: 1px solid var(--accent); text-align: center; width: 350px;
+        }
+        #passInput {
+            padding: 12px;
+            border-radius: 4px; border: 1px solid #444;
+            background: #252a2e; color: white; width: 100%; margin-bottom: 20px; text-align: center;
+        }
+
+        /* Layout */
+        #main-content { display: none;
+            width: 100%; max-width: 1400px; margin: 0 auto; }
+        header { text-align: center;
+            margin-bottom: 30px; }
+        h1 { font-size: 1.8rem; letter-spacing: 8px; color: var(--accent); text-transform: uppercase;
+            margin: 0 0 25px 0; }
+
+        /* Unified Buttons */
+        .nav-tabs { display: flex;
+            justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid #444; color: var(--text-secondary);
+            padding: 12px 25px; border-radius: 4px; cursor: pointer; transition: 0.3s;
+            font-weight: 600; text-transform: uppercase;
+            font-size: 0.8rem; letter-spacing: 1px;
+        }
+        .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        .tab-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+        /* Category Filter Navigation */
+        .category-nav {
+            display: flex;
+            justify-content: center; flex-wrap: wrap; 
+            gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #333;
+        }
+        .cat-filter-btn {
+            background: #1c1f22;
+            border: 1px solid #333; color: var(--text-secondary);
+            padding: 8px 16px; border-radius: 2px; cursor: pointer; font-size: 0.7rem;
+            text-transform: uppercase; transition: 0.2s;
+            font-weight: bold;
+        }
+        .cat-filter-btn.active { border-color: var(--accent); color: var(--accent); background: #252a2e; }
+
+        .search-container { text-align: center; margin-bottom: 30px; }
+        .search-bar {
+            width: 100%;
+            max-width: 500px; padding: 14px 25px;
+            background: #1c1f22; border: 1px solid #333; border-radius: 4px;
+            color: white; outline: none;
+            border-bottom: 2px solid var(--accent); font-size: 1rem;
+        }
+
+        /* Card Display */
+        .recipe-grid { display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .card { height: 500px; perspective: 1000px;
+            cursor: pointer; }
+        .card-inner { position: relative; width: 100%; height: 100%;
+            transition: transform 0.6s; transform-style: preserve-3d; }
+        .card.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+            border-radius: 4px; padding: 30px; }
+        
+        .card-front { 
+            background: var(--bg-card);
+            border: 1px solid #333; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
+        .card-back { background: #ffffff; color: #1a1a1a; transform: rotateY(180deg); overflow-y: auto; }
+        
+        .cat-tag { font-size: 0.65rem;
+            padding: 4px 12px; color: white; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; border-radius: 2px;
+        }
+        .label { display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase;
+            margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 2px; }
+        .content { font-size: 0.95rem;
+            color: #333; padding-top: 5px; font-weight: 400; }
+
+        /* Quiz Layout */
+        #quiz-section { display: none;
+            max-width: 900px; margin: 0 auto; }
+        .quiz-box { background: var(--bg-card); padding: 50px;
+            border-radius: 4px; border: 1px solid #333; text-align: center; }
+        .question-text { font-size: 1.6rem;
+            margin: 25px 0; color: #fff; font-weight: 300; }
+        .options-grid { display: grid;
+            grid-template-columns: 1fr; gap: 15px; }
+        .option-btn { 
+            background: #15181a;
+            border: 1px solid #333; color: white; padding: 20px; 
+            border-radius: 4px; cursor: pointer; text-align: left; font-size: 0.95rem; transition: 0.2s;
+        }
+        .option-btn:hover { border-color: var(--accent); background: #1c1f22; }
+
+        /* Yield Calculator / Calibration Styles */
+        #calc-section, #dial-section, #trouble-section, #schedule-section { display: none;
+            max-width: 800px; margin: 0 auto; }
+        .calc-box { background: var(--bg-card); padding: 40px;
+            border-radius: 4px; border: 1px solid #333; text-align: center; }
+        #schedule-section { max-width: 1200px; }
+        .calc-input {
+            width: 100%;
+            padding: 15px; background: #252a2e; border: 1px solid #444;
+            color: white; font-size: 1.2rem; text-align: center; border-radius: 4px; margin: 20px 0;
+        }
+        select.calc-input { font-size: 1rem; appearance: auto; }
+        .yield-display { margin-top: 30px; padding: 20px; background: #15181a; border-radius: 4px;
+            border: 1px dashed var(--accent); }
+        .yield-value { font-size: 2.5rem; color: var(--accent); font-weight: bold; display: block; }
+
+        /* Schedule Native Styles */
+        #roster-table th, #roster-table td { white-space: nowrap; border-right: 1px solid #444; }
+        #roster-table th:last-child, #roster-table td:last-child { border-right: none; }
+
+        /* Wrong Answer Popup */
+        #popup-overlay { 
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.95); z-index: 10000; justify-content: center; align-items: center;
+        }
+        .popup-box { background: #fff; color: #000; padding: 40px; border-radius: 4px; max-width: 600px;
+            width: 90%; }
+
+        /* PDF Viewer Overlay Styles */
+        #pdf-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 20000; flex-direction: column;
+        }
+        .pdf-header {
+            padding: 15px;
+            background: #1c1f22; display: flex; 
+            justify-content: space-between; align-items: center; border-bottom: 1px solid var(--accent);
+        }
+
+        @media (max-width: 600px) { 
+            h1 { font-size: 1.4rem; }
+            .nav-tabs { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="login-box">
+        <h2 style="color: var(--accent); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 25px;">Refill Access</h2>
+        <input type="password" id="passInput" placeholder="Enter Password">
+        <button class="tab-btn active" style="width: 100%;" onclick="checkAuth()">Enter Dashboard</button>
+    </div>
+</div>
+
+<div id="main-content">
+    <header><h1>Refill Reserve</h1></header>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" id="btn-browse" onclick="showTab('browse')">Recipe Cards</button>
+        <button class="tab-btn" id="btn-quiz" onclick="showTab('quiz')">Staff Quiz</button>
+        <button class="tab-btn" id="btn-calc" onclick="showTab('calc')">Yield Calculator</button>
+        <button class="tab-btn" id="btn-dial" onclick="showTab('dial')">Espresso Calibration</button>
+        <button class="tab-btn" id="btn-trouble" onclick="showTab('trouble')">Troubleshooting</button>
+        <button class="tab-btn" id="btn-schedule" onclick="showTab('schedule')">Schedule</button>
+        <button class="tab-btn" id="btn-contact" onclick="showTab('contact')">Contact Details</button>
+        <button class="tab-btn" id="btn-docs" onclick="showTab('documents')">Documents</button>
+    </div>
+
+    <div id="browse-section">
+         <div class="category-nav">
+            <button class="cat-filter-btn active" onclick="filterCat('All', this)">All</button>
+            <button class="cat-filter-btn" onclick="filterCat('Signature', this)">Signature</button>
+            <button class="cat-filter-btn" onclick="filterCat('Espresso Based', this)">Espresso</button>
+            <button class="cat-filter-btn" onclick="filterCat('Milk Based', this)">Milk Based</button>
+            <button class="cat-filter-btn" onclick="filterCat('Frappe', this)">Frappe</button>
+            <button class="cat-filter-btn" onclick="filterCat('NA', this)">NA</button>
+            <button class="cat-filter-btn" onclick="filterCat('Mojito', this)">Mojito</button>
+            <button class="cat-filter-btn" onclick="filterCat('Matcha', this)">Matcha</button>
+            <button class="cat-filter-btn" onclick="filterCat('Fruit & Smoothies', this)">Fruit & Smoothies</button>
+            <button class="cat-filter-btn" onclick="filterCat('Pour Over', this)">Pour Over</button>
+            <button class="cat-filter-btn" onclick="filterCat('Batch', this)">Batch</button>
+            <button class="cat-filter-btn" onclick="filterCat('Tea', this)">Tea</button>
+        </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-bar" placeholder="Search by drink name..." onkeyup="renderCards()">
+        </div>
+        <div class="recipe-grid" id="recipeGrid"></div>
+    </div>
+
+    <div id="quiz-section">
+        <div class="quiz-box">
+            <span class="cat-tag" id="q-cat" style="background: var(--accent);">Category</span>
+            <div class="question-text" id="q-text">Which ingredients belong to this drink?</div>
+            <div class="options-grid" id="q-options"></div>
+        </div>
+    </div>
+
+    <div id="calc-section">
+        <div class="calc-box">
+            <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:30px;">Yield Calculator</h2>
+            <div class="category-nav" style="border:none;">
+                <button class="cat-filter-btn active" onclick="setCalcDevice('Espresso', 2, this)">Espresso (1:2)</button>
+                <button class="cat-filter-btn" onclick="setCalcDevice('V60', 15, this)">V60 (1:15)</button>
+                <button class="cat-filter-btn" onclick="setCalcDevice('Chemex', 15, this)">Chemex (1:15)</button>
+                <button class="cat-filter-btn" onclick="setCalcDevice('Aeropress', 10, this)">Aeropress (1:10)</button>
+            </div>
+            <label class="label">Enter Coffee Dose (Grams)</label>
+            <input type="number" id="calcDose" class="calc-input" placeholder="0" oninput="calculateYield()">
+            <div class="yield-display">
+                <span class="label">Target Yield (Output)</span>
+                <span class="yield-value"><span id="yieldResult">0</span>g</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="dial-section">
+        <div class="calc-box" style="text-align: left;">
+            <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:10px; text-align:center;">The Bullseye Calibration</h2>
+            <p style="text-align:center; color:var(--text-secondary); font-size:0.85rem; margin-bottom:20px;">Step-by-step diagnostic tool for trainee baristas to lock in the perfect extraction.</p>
+            
+            <div style="background:#15181a; padding:15px; border-radius:4px; border-left: 4px solid var(--accent); margin-bottom:25px;">
+                <strong style="color:white; display:block; margin-bottom:8px; font-size:0.9rem; letter-spacing:1px;">⚠️ PRO-RULES</strong>
+                <ul style="margin:0; padding-left:20px; color:var(--text-secondary); font-size:0.85rem; line-height:1.6;">
+                    <li><strong>Static Dose:</strong> Keep dry weight constant (e.g., 20g).</li>
+                    <li><strong>One Move:</strong> Fix the Flavor first, then the Body.</li>
+                    <li><strong>Purge:</strong> Always remove one shot after a grind adjustment.</li>
+                </ul>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; background: #252a2e; padding: 15px; border-radius: 4px; border: 1px solid #444; margin-bottom: 20px;">
+                <div>
+                    <span class="label" style="margin-top:0; color:#ccc;">Dose (g)</span>
+                    <input type="number" id="dialDose" class="calc-input" placeholder="20.0" step="0.1" style="margin: 5px 0; padding:10px; font-size:1rem;">
+                </div>
+                <div>
+                    <span class="label" style="margin-top:0; color:#ccc;">Yield (g)</span>
+                    <input type="number" id="dialYield" class="calc-input" placeholder="40.0" step="0.1" style="margin: 5px 0; padding:10px; font-size:1rem;">
+                </div>
+                <div>
+                    <span class="label" style="margin-top:0; color:#ccc;">Time (s)</span>
+                    <input type="number" id="dialTime" class="calc-input" placeholder="28" style="margin: 5px 0; padding:10px; font-size:1rem;">
+                </div>
+            </div>
+
+            <div id="wizard-container" style="border: 1px solid #333; border-radius: 4px; padding: 25px; background: var(--bg-card);">
+                <div id="wizard-step-1" class="wizard-step">
+                    <h3 style="color:white; margin-top:0; font-weight:400;">Step 1: Taste The Shot</h3>
+                    <p style="color:var(--text-secondary); font-size:0.95rem;">Please pull a shot using the parameters above and taste it. Is it balanced?</p>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-top:25px;">
+                        <button class="option-btn" style="text-align:center; background:#1e3d2f; border-color:#2ecc71; color:#2ecc71; font-weight:bold;" onclick="markPerfect()">✅ YES - It's Balanced & Sweet</button>
+                        <button class="option-btn" style="text-align:center; border-color:var(--error);" onclick="selectStep('wizard-step-2')">❌ NO - It has a Flaw</button>
+                    </div>
+                </div>
+
+                <div id="wizard-step-2" class="wizard-step" style="display:none;">
+                    <h3 style="color:white; margin-top:0; font-weight:400;">Step 2: Identify Dominant Flaw</h3>
+                    <p style="color:var(--text-secondary); font-size:0.95rem;">What is the main issue with the shot?</p>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-top:25px;">
+                        <button class="option-btn" onclick="selectStep('wizard-step-flavor')">👅 Flavor Issue (Taste is off)</button>
+                        <button class="option-btn" onclick="selectStep('wizard-step-body')">💧 Body Issue (Texture/Flow is off)</button>
+                        <button class="option-btn" style="border-color:var(--error);" onclick="selectStep('wizard-step-emergency')">🚨 Emergency (Both are failing)</button>
+                        <button class="tab-btn" style="margin-top:15px;" onclick="selectStep('wizard-step-1')">🔙 Back</button>
+                    </div>
+                </div>
+
+                <div id="wizard-step-flavor" class="wizard-step" style="display:none;">
+                    <h3 style="color:white; margin-top:0; font-weight:400;">Flavor Flaws (The Ratio Lever)</h3>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-top:25px;">
+                        <button class="option-btn" onclick="setFlawAndAction('Sour / Sharp', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: ⬆️ INCREASE YIELD</strong><br><br><span style=\'font-size:0.9rem; color:#ccc;\'>Run the shot longer. Adjusting the ratio lever will extract more sweetness to balance the sourness.</span>', 'Increase Yield')">🍋 Sour / Sharp / Salty</button>
+                        <button class="option-btn" onclick="setFlawAndAction('Bitter / Dry', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: ⬇️ DECREASE YIELD</strong><br><br><span style=\'font-size:0.9rem; color:#ccc;\'>Stop the shot earlier. This fixes the chemistry by leaving bitter compounds behind.</span>', 'Decrease Yield')">🍂 Bitter / Dry / Ashy</button>
+                        <button class="tab-btn" style="margin-top:15px;" onclick="selectStep('wizard-step-2')">🔙 Back</button>
+                    </div>
+                </div>
+
+                <div id="wizard-step-body" class="wizard-step" style="display:none;">
+                    <h3 style="color:white; margin-top:0; font-weight:400;">Body Flaws (The Grind Lever)</h3>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-top:25px;">
+                        <button class="option-btn" onclick="setFlawAndAction('Thin / Watery', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: ⬇️ GRIND FINER</strong><br><br><span style=\'font-size:0.9rem; color:#ccc;\'>Slow it down. Adjusting the grind lever will fix the physical flow and increase texture.</span>', 'Grind Finer')">💧 Thin / Watery</button>
+                        <button class="option-btn" onclick="setFlawAndAction('Heavy / Muddled', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: ⬆️ GRIND COARSER</strong><br><br><span style=\'font-size:0.9rem; color:#ccc;\'>Speed it up. This will clean up the body and fix the physical flow.</span>', 'Grind Coarser')">🪨 Heavy / Muddled</button>
+                        <button class="tab-btn" style="margin-top:15px;" onclick="selectStep('wizard-step-2')">🔙 Back</button>
+                    </div>
+                </div>
+
+                <div id="wizard-step-emergency" class="wizard-step" style="display:none;">
+                    <h3 style="color:var(--error); margin-top:0; font-weight:400;">The Emergency Matrix</h3>
+                    <p style="color:var(--text-secondary); font-size:0.85rem;">Reminder: Fix the flavor first, then the body.</p>
+                    <div style="display:flex; flex-direction:column; gap:12px; margin-top:25px;">
+                        <button class="option-btn" onclick="setFlawAndAction('Thin & Sour', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: ⬆️ INCREASE YIELD & ⬇️ GRIND FINER</strong>', 'Increase Yield & Grind Finer')">Thin & Sour</button>
+                        <button class="option-btn" onclick="setFlawAndAction('Heavy & Sour', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: ⬆️ INCREASE YIELD & ⬆️ GRIND COARSER</strong>', 'Increase Yield & Grind Coarser')">Heavy & Sour</button>
+                        <button class="option-btn" onclick="setFlawAndAction('Heavy & Bitter', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: ⬇️ DECREASE YIELD & ⬆️ GRIND COARSER</strong>', 'Decrease Yield & Grind Coarser')">Heavy & Bitter</button>
+                        <button class="option-btn" onclick="setFlawAndAction('Thin & Bitter', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: ⬇️ DECREASE YIELD & ⬇️ GRIND FINER</strong>', 'Decrease Yield & Grind Finer')">Thin & Bitter</button>
+                        <button class="tab-btn" style="margin-top:15px;" onclick="selectStep('wizard-step-2')">🔙 Back</button>
+                    </div>
+                </div>
+
+                <div id="wizard-result" class="wizard-step" style="display:none;">
+                    <h3 style="color:var(--accent); margin-top:0; font-weight:400;">Recommended Action</h3>
+                    <div id="wizard-result-msg" style="padding:20px; background:#15181a; border-left:4px solid var(--accent); margin-top:15px; margin-bottom:20px; font-size:1rem;"></div>
+                    <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:25px;">Make this adjustment, purge (if grind changed), pull a new shot, and update your Dose/Yield/Time boxes at the top.</p>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <button class="tab-btn active" style="width:100%; font-size:1rem; padding:15px;" onclick="applyAndRetest()">🔄 I Adjusted It - Re-Test New Shot</button>
+                        <button class="tab-btn" style="width:100%;" onclick="selectStep('wizard-step-2')">🔙 Change Flaw</button>
+                    </div>
+                </div>
+
+                <div id="wizard-success" class="wizard-step" style="display:none; text-align:center;">
+                    <h2 style="color:#2ecc71; margin-top:0;">🎉 Perfect Shot Achieved!</h2>
+                    <p style="color:var(--text-secondary); font-size:0.95rem;">Parameters are successfully locked in.</p>
+                    <div style="text-align:left; margin-top:20px; margin-bottom:10px;">
+                        <span class="label" style="color:#ccc;">Calibration Log:</span>
+                    </div>
+                    <div id="calibration-log-display" style="text-align:left; background:#15181a; padding:15px; border-radius:4px; font-size:0.85rem; color:#aaa; margin-bottom:25px; max-height:200px; overflow-y:auto; border: 1px solid #333; line-height: 1.6;">
+                    </div>
+                    <button class="tab-btn active" style="width:100%; font-size:1rem; padding:15px; background:#25D366; border-color:#25D366; color:#fff; font-weight:bold; margin-bottom:15px;" onclick="sendToManager()">📱 Send Report to Store Manager</button>
+                    <button class="tab-btn" style="width:100%;" onclick="resetWizard()">🔄 Start New Calibration</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="trouble-section">
+        <div class="calc-box">
+            <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:30px;">Troubleshooting Guide</h2>
+            <div class="category-nav" style="border:none;">
+                <button class="cat-filter-btn active" onclick="filterTrouble('Grinders', this)">Grinders</button>
+                <button class="cat-filter-btn" onclick="filterTrouble('Espresso Machines', this)">Espresso Machines</button>
+                <button class="cat-filter-btn" onclick="filterTrouble('Boilers', this)">Boilers</button>
+                <button class="cat-filter-btn" onclick="filterTrouble('Milk', this)">Milk</button>
+                <button class="cat-filter-btn" onclick="filterTrouble('Drinks', this)">Drinks</button>
+            </div>
+            <label class="label">Select issue:</label>
+            <select id="troubleSelect" class="calc-input" onchange="showTroublePopup(this)" style="text-align: left;">
+                <option value="">-- Choose an issue --</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="schedule-section">
+        <div class="calc-box" style="padding: 25px;">
+            <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:20px;">Staff Schedule</h2>
+            
+            <div class="category-nav" style="border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
+                <button class="cat-filter-btn active" id="btn-default-branch" onclick="loadNativeSchedule('hilli', this)">Hilli</button>
+                <button class="cat-filter-btn" onclick="loadNativeSchedule('nimah', this)">Nimah</button>
+                <button class="cat-filter-btn" onclick="loadNativeSchedule('yahar', this)">Yahar</button>
+                <button class="cat-filter-btn" onclick="loadNativeSchedule('sarooj', this)">Sarooj</button>
+                <button class="cat-filter-btn" onclick="loadNativeSchedule('riyadh', this)">Riyadh</button>
+            </div>
+            
+            <div class="nav-tabs" style="margin-bottom: 20px;">
+                <button class="tab-btn active" id="btn-view-roster" onclick="switchScheduleView('roster')">Full Roster</button>
+                <button class="tab-btn" id="btn-view-today" onclick="switchScheduleView('today')">Today's Team</button>
+                <button class="tab-btn" id="btn-view-personal" onclick="switchScheduleView('personal')">My Schedule</button>
+            </div>
+
+            <div id="sched-loader" style="color:var(--accent); margin: 20px 0; font-weight:bold; letter-spacing:1px; display:none;">SYNCING WITH DATABASE...</div>
+
+            <div id="view-roster" style="width: 100%; overflow-x: auto; background:#15181a; border-radius:4px; padding:10px;">
+                <table id="roster-table" style="width: 100%; border-collapse: collapse; text-align: center; color: white; font-size: 0.8rem; border:1px solid #333;">
+                </table>
+            </div>
+
+            <div id="view-today" style="display:none; text-align:left;">
+                <h3 style="color:var(--accent); border-bottom:1px solid #333; padding-bottom:10px; margin-top:0;">Who's Working Today</h3>
+                <div id="today-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top:20px;">
+                </div>
+            </div>
+
+            <div id="view-personal" style="display:none; text-align:center;">
+                <span class="label">Select your name</span>
+                <select id="emp-select" class="calc-input" onchange="generatePersonalCard()" style="margin-top:10px; margin-bottom: 30px; text-align:left;">
+                    <option value="">-- Dropdown --</option>
+                </select>
+
+                <div id="flashcard-wrapper" style="display:none; align-items: center; flex-direction: column;">
+                    <div id="personal-flashcard" style="background: #0f1113; border: 2px solid var(--accent); border-radius: 8px; width: 100%; max-width: 380px; padding: 25px; text-align: left; color: white; position: relative;">
+                        </div>
+                    
+                    <button class="tab-btn active" style="margin-top:25px; width: 100%; max-width: 380px; background:#2ecc71; border-color:#2ecc71; color:#000; font-weight:bold; font-size:0.9rem; padding:15px;" onclick="downloadFlashcard()">
+                        📸 DOWNLOAD SCHEDULE
+                    </button>
+                    <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:10px;">Saves directly to your phone's gallery.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div id="contact-section" style="display:none;">
+        <div class="recipe-grid" id="contactGrid"></div>
+    </div>
+
+    <div id="documents-section" style="display:none;">
+        <div class="recipe-grid" id="docsGrid"></div>
+    </div>
+</div>
+
+<div id="popup-overlay">
+    <div class="popup-box">
+        <h2 id="popup-title" style="color:var(--error); margin-top:0; letter-spacing:2px;">INCORRECT</h2>
+        <p id="popup-desc">Correct Recipe for <strong><span id="p-name"></span></strong>:</p>
+        <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 4px; border-left: 4px solid var(--accent); margin: 20px 0;">
+            <span class="label" id="label-1">Ingredients</span><div id="p-ing" class="content"></div>
+            <span class="label" id="label-2">Method</span><div id="p-meth" class="content"></div>
+            <span class="label" id="label-3">Equipment</span><div id="p-eq" class="content"></div>
+            <span class="label" id="label-4">Serving</span><div id="p-serv" class="content"></div>
+        </div>
+        <button class="tab-btn active" style="width: 100%;" onclick="closePopup()">I Understand - Next</button>
+    </div>
+</div>
+
+<div id="pdf-overlay">
+    <div class="pdf-header">
+        <span style="color:var(--accent); font-weight:bold; letter-spacing:2px;">STAFF HANDBOOK</span>
+        <button onclick="closePDF()" style="background:var(--error); color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:bold;">CLOSE</button>
+    </div>
+    <div style="flex-grow:1; -webkit-overflow-scrolling:touch; overflow-y:scroll; background:#333;">
+        <iframe id="pdf-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
+    </div>
+</div>
+
+<script>
+const MASTER_PASS = "Refill2024";
+let activeCat = "All";
+let currentRatio = 2;
+
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ13wVqduebIg7mNo0ppS0BGucdTT8rviaMw6-FZcATLyJ11aBE8809JXrTzzQlsjAPuyJTy0R1H9qg/pub?gid=0&single=true&output=csv"; 
+let data = [];
+
+// TROUBLESHOOTING DATA
+const troubleshootingData = [
+    { cat: "Grinders", issue: "Grinder blocked - motor sounds but nothing out", diag: "Hopper gate closed, grind too fine, or oily beans.", treat: "Close gate, remove hopper, vacuum out retained grinds." },
+    { cat: "Grinders", issue: "Grinder blocked - motor not turning", diag: "Jamming caused by fines/oil; potential blown capacitor.", treat: "Clear grinds. If no spin, seek professional cleaning." },
+    { cat: "Grinders", issue: "Grinder not switching on", diag: "Hopper safety switch or circuit breaker.", treat: "Check hopper seating and external circuit breaker." },
+    { cat: "Grinders", issue: "Grinder not accurate", diag: "Grind-retention issue.", treat: "Purge grinds after adjustments." },
+    { cat: "Espresso Machines", issue: "Cannot get portafilter into group", diag: "Basket not level, residue buildup, or overdosing.", treat: "Clean screen/gasket. Check dose with scales." },
+    { cat: "Espresso Machines", issue: "Group head leaking during shot", diag: "Worn gasket or residue buildup.", treat: "Clean/replace gasket. Wipe basket rim." },
+    { cat: "Espresso Machines", issue: "Pucks stuck to shower screen", diag: "Pump pressure too high.", treat: "Check pump pressure. Flush to release puck." },
+    { cat: "Boilers", issue: "Steam wand too aggressive / Milk spills", diag: "Pressure > 1.3 bars or large tip holes.", treat: "Consult technician or use larger pitcher." },
+    { cat: "Boilers", issue: "Milk heating too slow", diag: "Pressure < 1 bar or blocked tip.", treat: "Clean tip. Check pressure gauge." },
+    { cat: "Milk", issue: "Foam breaking up immediately", diag: "Sour milk or UV light damage.", treat: "Store milk away from sun. Sour milk won't foam." },
+    { cat: "Milk", issue: "Milk too bubbly", diag: "Late aeration or over-aeration.", treat: "Add air early, before milk gets warm." },
+    { cat: "Drinks", issue: "Inconsistent beverage weight", diag: "Overdosing or underdosing.", treat: "Use scales to calibrate grinder timer." },
+    { cat: "Drinks", issue: "Drink too cold", diag: "Temp < 55C or unheated cups.", treat: "Stack cups max 3 high. Verify with thermometer." }
+];
+
+async function fetchRecipes() {
+    try {
+        const response = await fetch(SHEET_URL);
+        const csvText = await response.text();
+        const rows = csvText.split('\n').slice(1); 
+        data = rows.map(row => {
+             const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
+             return {
+                name: cols[0]?.replace(/"/g, ''),
+                cat: cols[1]?.replace(/"/g, ''),
+                color: cols[2]?.replace(/"/g, '') || "var(--accent)",
+                ing: cols[3]?.replace(/"/g, ''),
+                method: cols[4]?.replace(/"/g, ''),
+                eq: cols[5]?.replace(/"/g, ''),
+                serv: cols[6]?.replace(/"/g, '')
+            };
+        }).filter(item => item.name); 
+
+        renderCards();
+        if(typeof startNewQuestion === 'function') startNewQuestion();
+    } catch (error) {
+        console.error("Error loading recipes:", error);
+    }
+}
+
+window.onload = () => {
+    fetchRecipes();
+    filterTrouble('Grinders', document.querySelector('.cat-filter-btn.active'));
+    // Load default schedule data silently in background
+    loadNativeSchedule('hilli', document.getElementById('btn-default-branch'));
+};
+
+const contactData = [
+    { name: "Shashikant Joshi", role: "Operations Manager", location: "Refill Reserve", phone: "0528797089" },
+    { name: "Saad Khan", role: "Operations Manager", location: "Refill Roastery", phone: "0565460813" },
+    { name: "Rolly Celzo", role: "HR Manager", location: "Refill Roastery/Reserve", phone: "0565460812" },
+    { name: "Ajit Tamang", role: "QC", location: "Refill Roastery/Reserve", phone: "0544640259" },
+    { name: "Washiq", role: "Junior Accountant", location: "Refill Roastery/Reserve", phone: "0569608981" },
+    { name: "Refill Roastery - Hilli", role: "Branch Contact", location: "Hilli", phone: "037531351" },
+    { name: "Refill Reserve - Hilli", role: "Branch Contact", location: "Hilli", phone: "037366307" }
+];
+
+const docData = [
+    { name: "Hand book", description: "Official staff guidelines and protocol.", file: "https://drive.google.com/file/d/1cqX2cwt8nLiVJDOXf1VZyiUUGRf4wYsC/preview" },
+    { name: "Leave application form", description: "Standard form for leave requests.", file: "https://drive.google.com/uc?export=download&id=1S3HEygyR1R8cVAzNKlb86m1jTSSjI5rh&authuser=2" },
+    { name: "Salary advance form", description: "Official form for salary advance requests.", file: "https://drive.google.com/uc?export=download&id=14perFQsSMCfTMP4Y2SOuWpzh3w_VSoh3" }
+];
+
+function checkAuth() {
+    if(document.getElementById('passInput').value === MASTER_PASS) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+    } else {
+        alert("Incorrect password.");
+        document.getElementById('passInput').value = ""; 
+    }
+}
+
+function showTab(view) {
+    const tabs = ['browse', 'quiz', 'calc', 'dial', 'trouble', 'schedule', 'contact', 'documents'];
+    tabs.forEach(t => {
+        document.getElementById(t + '-section').style.display = (view === t) ? 'block' : 'none';
+        document.getElementById('btn-' + t).classList.toggle('active', view === t);
+    });
+    if(view === 'quiz') startNewQuestion();
+    if(view === 'contact') renderContacts();
+    if(view === 'documents') renderDocuments();
+}
+
+function filterTrouble(cat, btn) {
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const select = document.getElementById('troubleSelect');
+    select.innerHTML = '<option value="">-- Choose an issue --</option>';
+    troubleshootingData.filter(d => d.cat === cat).forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = JSON.stringify(d);
+        opt.innerText = d.issue;
+        select.appendChild(opt);
+    });
+}
+
+function showTroublePopup(select) {
+    if(!select.value) return;
+    const item = JSON.parse(select.value);
+    document.getElementById('popup-title').innerText = "TROUBLESHOOTING";
+    document.getElementById('popup-title').style.color = "var(--accent)";
+    document.getElementById('popup-desc').innerHTML = `Issue identified: <strong>${item.issue}</strong>`;
+    document.getElementById('p-ing').innerText = item.diag;
+    document.getElementById('p-meth').innerText = item.treat;
+    document.getElementById('p-eq').innerText = item.cat;
+    document.getElementById('label-4').style.display = 'none';
+    document.getElementById('p-serv').style.display = 'none';
+    document.getElementById('popup-overlay').style.display = 'flex';
+}
+
+function setCalcDevice(device, ratio, btn) {
+    currentRatio = ratio;
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    calculateYield();
+}
+
+function calculateYield() {
+    const dose = document.getElementById('calcDose').value;
+    const result = (dose * currentRatio).toFixed(1);
+    document.getElementById('yieldResult').innerText = dose > 0 ? result : "0";
+}
+
+// BULLSEYE CALIBRATION WIZARD 
+let calibLog = [];
+let shotCount = 1;
+let currentFlaw = "";
+let currentAction = "";
+
+function selectStep(stepId) {
+    document.querySelectorAll('.wizard-step').forEach(el => el.style.display = 'none');
+    document.getElementById(stepId).style.display = 'block';
+}
+
+function setFlawAndAction(flawName, actionHtml, actionText) {
+    currentFlaw = flawName;
+    currentAction = actionText;
+    document.getElementById('wizard-result-msg').innerHTML = actionHtml;
+    selectStep('wizard-result');
+}
+
+function applyAndRetest() {
+    let d = document.getElementById('dialDose').value || "?";
+    let y = document.getElementById('dialYield').value || "?";
+    let t = document.getElementById('dialTime').value || "?";
+    calibLog.push(`🎯 *Shot ${shotCount}*\nIn: ${d}g | Out: ${y}g | Time: ${t}s\nFlaw: ${currentFlaw}\nAction: ${currentAction}`);
+    shotCount++;
+    document.getElementById('dialYield').value = '';
+    document.getElementById('dialTime').value = '';
+    selectStep('wizard-step-1');
+}
+
+function markPerfect() {
+    let d = document.getElementById('dialDose').value || "?";
+    let y = document.getElementById('dialYield').value || "?";
+    let t = document.getElementById('dialTime').value || "?";
+    calibLog.push(`🏆 *Shot ${shotCount} (FINAL)*\nIn: ${d}g | Out: ${y}g | Time: ${t}s\nResult: Balanced & Sweet (PERFECT)`);
+    let logHtml = calibLog.map(log => `<div style="margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:8px;">${log.replace(/\n/g, '<br>')}</div>`).join('');
+    document.getElementById('calibration-log-display').innerHTML = logHtml;
+    selectStep('wizard-success');
+}
+
+function resetWizard() {
+    calibLog = [];
+    shotCount = 1;
+    document.getElementById('dialDose').value = '';
+    document.getElementById('dialYield').value = '';
+    document.getElementById('dialTime').value = '';
+    selectStep('wizard-step-1');
+}
+
+function sendToManager() {
+    let text = "☕ *ESPRESSO CALIBRATION REPORT*\n\n" + calibLog.join("\n\n") + "\n\n✅ *Calibration Complete & Parameters Locked In.*";
+    window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank');
+}
+
+function filterCat(cat, btn) {
+    activeCat = cat;
+    document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCards();
+}
+
+function renderCards() {
+    const grid = document.getElementById('recipeGrid');
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    grid.innerHTML = '';
+    data.filter(r => {
+        return r.name.toLowerCase().includes(q) && (activeCat === "All" || r.cat === activeCat);
+    }).forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.onclick = () => div.classList.toggle('flipped');
+        div.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front">
+                    <span class="cat-tag" style="background:${r.color}">${r.cat}</span>
+                    <h2 style="font-weight:400; letter-spacing:1px;">${r.name}</h2>
+                    <small style="color:var(--accent); font-size:0.6rem; margin-top:10px;">TAP TO VIEW RECIPE</small>
+                </div>
+                <div class="card-back">
+                    <h3 style="margin:0; font-size:1rem; color:var(--accent); border-bottom:1px solid #eee; padding-bottom:5px;">${r.name}</h3>
+                    <span class="label">Ingredients</span><div class="content">${r.ing}</div>
+                    <span class="label">Method</span><div class="content">${r.method}</div>
+                    <span class="label">Equipment</span><div class="content">${r.eq}</div>
+                    <span class="label">Serving</span><div class="content">${r.serv}</div>
+                </div>
+            </div>`;
+        grid.appendChild(div);
+    });
+}
+
+function renderContacts() {
+    const grid = document.getElementById('contactGrid');
+    grid.innerHTML = '';
+    contactData.forEach(c => {
+        const isMobile = c.phone.startsWith('05');
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.onclick = (e) => { if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') div.classList.toggle('flipped'); };
+        div.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front">
+                    <span class="cat-tag" style="background:var(--accent); color:#000;">CONTACT</span>
+                    <h2 style="font-weight:400; letter-spacing:1px; margin-bottom:5px;">${c.name}</h2>
+                    <p style="color:var(--text-secondary); margin:0; font-size:0.8rem; text-transform:uppercase;">${c.role}</p>
+                </div>
+                <div class="card-back">
+                    <h3 style="margin:0; font-size:1rem; color:var(--accent); border-bottom:1px solid #eee; padding-bottom:5px;">${c.name}</h3>
+                    <span class="label">Mobile Number</span>
+                    <div class="content" style="font-size:1.4rem; font-weight:bold; color:#000;">${c.phone}</div>
+                    <div style="margin-top:30px; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+                        <a href="tel:${c.phone}" style="background:var(--accent); color:#000; padding:12px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:0.8rem; width: 85%; text-align: center;">CALL NOW</a>
+                    </div>
+                </div>
+            </div>`;
+        grid.appendChild(div);
+    });
+}
+
+function renderDocuments() {
+    const grid = document.getElementById('docsGrid');
+    grid.innerHTML = '';
+    docData.forEach(d => {
+        const isHandbook = d.name === "Hand book";
+        const btnText = isHandbook ? "Open & Read" : "Download File";
+        const linkHref = isHandbook ? "javascript:void(0)" : d.file;
+        const clickAction = isHandbook ? `onclick="openPDF('${d.file}')"` : "";
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front">
+                    <span class="cat-tag" style="background:var(--accent); color:#000;">DOCS</span>
+                    <h2 style="font-weight:400; letter-spacing:1px; margin-bottom:15px;">${d.name}</h2>
+                    <div style="margin-top:40px; width: 80%;">
+                        <a href="${linkHref}" ${clickAction} style="background:var(--accent); color:#000; padding:15px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:0.8rem; text-transform:uppercase; display:block; text-align: center;">${btnText}</a>
+                    </div>
+                </div>
+            </div>`;
+        grid.appendChild(div);
+    });
+}
+
+function openPDF(file) {
+    document.getElementById('pdf-frame').src = file;
+    document.getElementById('pdf-overlay').style.display = 'flex';
+}
+
+function closePDF() {
+    document.getElementById('pdf-overlay').style.display = 'none';
+}
+
+function copyNumber(num, btn) {
+    navigator.clipboard.writeText(num).then(() => {
+        btn.innerText = "COPIED!";
+        setTimeout(() => { btn.innerText = "COPY"; }, 2000);
+    });
+}
+
+let currentQ = null;
+function startNewQuestion() {
+    if(data.length === 0) return;
+    currentQ = data[Math.floor(Math.random() * data.length)];
+    document.getElementById('q-cat').innerText = currentQ.cat;
+    document.getElementById('q-cat').style.background = currentQ.color;
+    document.getElementById('q-text').innerText = `Identify the ingredients for: ${currentQ.name}`;
+    let options = [currentQ.ing];
+    while(options.length < 4 && options.length < data.length) {
+        let r = data[Math.floor(Math.random() * data.length)].ing;
+        if(!options.includes(r)) options.push(r);
+    }
+    options.sort(() => Math.random() - 0.5);
+    const container = document.getElementById('q-options');
+    container.innerHTML = '';
+    options.forEach(opt => {
+        const b = document.createElement('button');
+        b.className = 'option-btn';
+        b.innerText = opt;
+        b.onclick = () => (opt === currentQ.ing) ? startNewQuestion() : showQuizPopup();
+        container.appendChild(b);
+    });
+}
+
+function showQuizPopup() {
+    document.getElementById('popup-title').innerText = "INCORRECT";
+    document.getElementById('p-name').innerText = currentQ.name;
+    document.getElementById('p-ing').innerText = currentQ.ing;
+    document.getElementById('p-meth').innerText = currentQ.method;
+    document.getElementById('p-eq').innerText = currentQ.eq;
+    document.getElementById('p-serv').innerText = currentQ.serv;
+    document.getElementById('popup-overlay').style.display = 'flex';
+}
+
+function closePopup() {
+    document.getElementById('popup-overlay').style.display = 'none';
+    if (document.getElementById('quiz-section').style.display === 'block') startNewQuestion();
+}
+
+
+// ==========================================
+// NEW NATIVE SCHEDULE SYSTEM (WITH DOWNLOAD)
+// ==========================================
+
+// Converting standard pubhtml to pub?output=csv for Google Sheets
+const schedURLs = {
+    hilli: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVN9A9W0UdZHYSp4DF-VG2EJt8qMIl3cL92t4eqe1Hehe-u4l9BfZck081zXlmGXouTPPilHYS31jw/pub?gid=0&single=true&output=csv",
+    nimah: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVN9A9W0UdZHYSp4DF-VG2EJt8qMIl3cL92t4eqe1Hehe-u4l9BfZck081zXlmGXouTPPilHYS31jw/pub?gid=2136013769&single=true&output=csv",
+    yahar: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVN9A9W0UdZHYSp4DF-VG2EJt8qMIl3cL92t4eqe1Hehe-u4l9BfZck081zXlmGXouTPPilHYS31jw/pub?gid=1939032305&single=true&output=csv",
+    sarooj: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVN9A9W0UdZHYSp4DF-VG2EJt8qMIl3cL92t4eqe1Hehe-u4l9BfZck081zXlmGXouTPPilHYS31jw/pub?gid=240946238&single=true&output=csv",
+    riyadh: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVN9A9W0UdZHYSp4DF-VG2EJt8qMIl3cL92t4eqe1Hehe-u4l9BfZck081zXlmGXouTPPilHYS31jw/pub?gid=2095999078&single=true&output=csv"
+};
+
+let currentScheduleData = { headers: [], dates: [], employees: [], branch: 'hilli' };
+
+async function loadNativeSchedule(branch, btn) {
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.getElementById('sched-loader').style.display = 'block';
+    document.getElementById('view-roster').style.display = 'none';
+    document.getElementById('view-today').style.display = 'none';
+    document.getElementById('view-personal').style.display = 'none';
+
+    try {
+        const response = await fetch(schedURLs[branch]);
+        const csvText = await response.text();
+        parseScheduleCSV(csvText, branch);
+        
+        document.getElementById('sched-loader').style.display = 'none';
+        
+        // Ensure buttons sync
+        switchScheduleView('roster'); 
+    } catch(e) {
+        document.getElementById('sched-loader').innerText = "Network error. Could not sync.";
+    }
+}
+
+function parseScheduleCSV(csv, branch) {
+    // Regex safely splits CSV handling commas inside quotes
+    const rows = csv.split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim()));
+    
+    // Find the row containing "NAME" (Header Row)
+    let nameRowIdx = -1;
+    for(let i=0; i<rows.length; i++) {
+        if(rows[i][0] && rows[i][0].toUpperCase().includes('NAME')) {
+            nameRowIdx = i;
+            break;
+        }
+    }
+
+    if(nameRowIdx === -1) nameRowIdx = 0; // fallback
+
+    const days = rows[nameRowIdx].slice(1).filter(d => d !== "");
+    const dates = (rows.length > nameRowIdx + 1) ? rows[nameRowIdx + 1].slice(1) : [];
+    
+    const employees = [];
+    const startIdx = (rows.length > nameRowIdx + 1 && rows[nameRowIdx+1][0] === '') ? nameRowIdx + 2 : nameRowIdx + 1;
+
+    for(let i = startIdx; i < rows.length; i++) {
+        let empName = rows[i][0];
+        if(empName && empName !== '') {
+            employees.push({
+                name: empName,
+                shifts: rows[i].slice(1, days.length + 1)
+            });
+        }
+    }
+
+    currentScheduleData = { headers: days, dates: dates, employees: employees, branch: branch.toUpperCase() };
+    
+    renderFullRoster();
+    renderToday();
+    populateEmpSelect();
+}
+
+function renderFullRoster() {
+    const tbl = document.getElementById('roster-table');
+    let html = `<thead><tr style="background:#252a2e; border-bottom:2px solid var(--accent);">
+        <th style="padding:15px; font-weight:800; letter-spacing:1px; color:var(--accent);">NAME</th>`;
+    
+    for(let i=0; i<currentScheduleData.headers.length; i++) {
+        let day = currentScheduleData.headers[i];
+        let date = currentScheduleData.dates[i] || '';
+        html += `<th style="padding:15px; font-weight:800;">${day}<br><span style="font-size:0.65rem; color:#aaa; font-weight:normal;">${date}</span></th>`;
+    }
+    html += `</tr></thead><tbody>`;
+
+    currentScheduleData.employees.forEach(emp => {
+        html += `<tr style="border-bottom:1px solid #333;">
+            <td style="padding:15px; font-weight:bold; color:#fff; background:#1c1f22;">${emp.name}</td>`;
+        emp.shifts.forEach(shift => {
+            let isOff = shift.toUpperCase().includes('OFF');
+            let bg = isOff ? 'background:rgba(231,76,60,0.15); color:#e74c3c; font-weight:bold;' : 'color:#ddd;';
+            html += `<td style="padding:15px; ${bg}">${shift}</td>`;
+        });
+        html += `</tr>`;
+    });
+    html += `</tbody>`;
+    tbl.innerHTML = html;
+}
+
+function renderToday() {
+    const todayStr = new Date().toLocaleDateString('en-US', {weekday: 'short'}).toUpperCase();
+    let colIdx = currentScheduleData.headers.findIndex(h => h.toUpperCase().includes(todayStr));
+    
+    let container = document.getElementById('today-container');
+    if(colIdx === -1) {
+        container.innerHTML = `<p style="color:var(--text-secondary);">Today's date is not on this schedule.</p>`;
+        return;
+    }
+
+    let html = '';
+    currentScheduleData.employees.forEach(emp => {
+        let shift = emp.shifts[colIdx] || 'OFF';
+        if(!shift.toUpperCase().includes('OFF') && shift.trim() !== '') {
+            html += `
+            <div style="background:#1c1f22; border:1px solid #333; border-left:4px solid var(--accent); padding:15px; border-radius:4px;">
+                <strong style="color:white; font-size:1.1rem; display:block; letter-spacing:1px; margin-bottom:5px;">${emp.name}</strong>
+                <span style="color:var(--accent); font-size:0.9rem; font-weight:bold;">🕒 ${shift}</span>
+            </div>`;
+        }
+    });
+    
+    if(html === '') html = '<p style="color:var(--text-secondary);">No active shifts found for today.</p>';
+    container.innerHTML = html;
+}
+
+function populateEmpSelect() {
+    const sel = document.getElementById('emp-select');
+    sel.innerHTML = '<option value="">-- Choose Name from List --</option>';
+    currentScheduleData.employees.forEach(emp => {
+        sel.innerHTML += `<option value="${emp.name}">${emp.name}</option>`;
+    });
+    document.getElementById('flashcard-wrapper').style.display = 'none';
+}
+
+function switchScheduleView(view) {
+    document.getElementById('view-roster').style.display = (view === 'roster') ? 'block' : 'none';
+    document.getElementById('view-today').style.display = (view === 'today') ? 'block' : 'none';
+    document.getElementById('view-personal').style.display = (view === 'personal') ? 'block' : 'none';
+    
+    document.getElementById('btn-view-roster').classList.toggle('active', view === 'roster');
+    document.getElementById('btn-view-today').classList.toggle('active', view === 'today');
+    document.getElementById('btn-view-personal').classList.toggle('active', view === 'personal');
+}
+
+function generatePersonalCard() {
+    const name = document.getElementById('emp-select').value;
+    const wrapper = document.getElementById('flashcard-wrapper');
+    const card = document.getElementById('personal-flashcard');
+    
+    if(!name) {
+        wrapper.style.display = 'none';
+        return;
+    }
+
+    const emp = currentScheduleData.employees.find(e => e.name === name);
+    if(!emp) return;
+
+    let html = `
+        <div style="text-align:center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom:15px;">
+            <h2 style="margin:0; color:var(--accent); letter-spacing:2px; text-transform:uppercase;">${emp.name}</h2>
+            <span style="font-size:0.8rem; color:#aaa; font-weight:bold; letter-spacing:1px;">WEEKLY SHIFTS - ${currentScheduleData.branch}</span>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px; font-size:0.95rem;">
+    `;
+
+    for(let i=0; i<currentScheduleData.headers.length; i++) {
+        let day = currentScheduleData.headers[i];
+        let date = currentScheduleData.dates[i] || '';
+        let shift = emp.shifts[i] || 'OFF';
+        let isOff = shift.toUpperCase().includes('OFF');
+        let color = isOff ? 'var(--error)' : 'white';
+        
+        html += `
+            <div style="padding:12px 0; border-bottom:1px dashed #333;">
+                <strong style="color:var(--accent); letter-spacing:1px;">${day}</strong> <span style="font-size:0.7rem; color:#888;">${date}</span>
+            </div>
+            <div style="padding:12px 0; border-bottom:1px dashed #333; color:${color}; font-weight:${isOff ? 'bold' : 'normal'};">
+                ${shift}
+            </div>
+        `;
+    }
+    
+    html += `</div>
+        <div style="text-align:center; margin-top:20px; font-size:0.7rem; color:#666; font-style:italic;">
+            Official Schedule • Generated via Refill Portal
+        </div>
+    `;
+
+    card.innerHTML = html;
+    wrapper.style.display = 'flex';
+}
+
+function downloadFlashcard() {
+    const card = document.getElementById('personal-flashcard');
+    html2canvas(card, { backgroundColor: '#0f1113', scale: 2 }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Refill_Schedule_${document.getElementById('emp-select').value}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+}
+</script>
+</body>
+</html>
