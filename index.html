@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Refill Reserve | Professional Staff Portal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Refill">
+<link rel="manifest" href="manifest.json">
+
+<script>
+  if ('service-worker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker Registered!'))
+        .catch(err => console.log('Service Worker Error', err));
+    });
+  }
+</script>
+
+<style>
+:root {
+  --bg-body: #0f1113;
+  --bg-card: #1c1f22;
+  --accent: #d4af37;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --error: #e74c3c;
+  --c-signature: #800000;
+  --c-espresso: #6f4e37;
+  --c-milk: #e67e22;
+  --c-matcha: #2ecc71;
+  --c-fruit: #d35400;
+  --c-manual: #3498db;
+  --c-batch: #7f8c8d;
+  --c-tea: #34495e;
+  --c-frappe: #964b00;
+  --c-mojito: #1abc9c;
+  --c-na: #607d8b;
+}
+
+* { box-sizing: border-box; }
+body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-body); color: var(--text-primary); margin: 0; padding: 20px; line-height: 1.6; }
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #1c1f22; }
+::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+.screen { display: none; width: 100%; max-width: 1400px; margin: 0 auto; }
+
+/* AUTH SCREEN */
+#auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+.login-box { background: var(--bg-card); padding: 40px; border-radius: 8px; border: 1px solid var(--accent); text-align: center; width: 100%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.input-box { padding: 12px; border-radius: 4px; border: 1px solid #444; background: #252a2e; color: white; width: 100%; margin-bottom: 15px; text-align: center; font-size: 1rem; }
+.btn-att { width: 100%; padding: 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 10px; font-size: 1rem; }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-in { background: #2e7d32; color: #fff; }
+.btn-study { background: #3498db; color: #fff; }
+#status-msg { margin-top: 15px; font-size: 0.85rem; font-weight: bold; color: var(--accent); }
+
+/* DASHBOARD STYLES */
+.dashboard-menu { display: flex; flex-direction: column; gap: 15px; max-width: 500px; margin: 0 auto; margin-top: 30px;}
+.dash-btn { background: transparent; color: var(--text-primary); border: 1px solid #444; padding: 20px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; text-align: center; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 2px;}
+.dash-btn:hover { background: #1c1f22; border-color: var(--accent); }
+.dash-btn.active-dash { background: #2a1b0a; border-color: var(--accent); } /* Selected look */
+
+/* HEADER & BACK BUTTON */
+header { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 15px; position: relative;}
+h1 { font-size: 1.8rem; letter-spacing: 8px; color: var(--accent); text-transform: uppercase; margin: 0; text-align: center; width: 100%;}
+.header-logout { position: absolute; right: 0; background: var(--bg-card); color: white; border: 1px solid #444; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8rem; transition: 0.3s; }
+.header-logout:hover { border-color: var(--error); color: var(--error); }
+.back-btn { background: transparent; color: var(--text-secondary); border: 1px solid #444; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 20px; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; }
+.back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* CONTENT STYLES */
+.nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+.tab-btn { background: transparent; border: 1px solid #444; color: var(--text-secondary); padding: 12px 25px; border-radius: 4px; cursor: pointer; transition: 0.3s; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+.tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+.tab-btn:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+
+.category-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #333; }
+.cat-filter-btn { background: #1c1f22; border: 1px solid #333; color: var(--text-secondary); padding: 8px 16px; border-radius: 2px; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; font-weight: bold; }
+.cat-filter-btn.active { border-color: var(--accent); color: var(--accent); background: #252a2e; }
+
+.search-container { text-align: center; margin-bottom: 30px; }
+.search-bar { width: 100%; max-width: 500px; padding: 14px 25px; background: #1c1f22; border: 1px solid #333; border-radius: 4px; color: white; border-bottom: 2px solid var(--accent); font-size: 1rem; outline: none; }
+
+.recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+.card { height: 500px; perspective: 1000px; cursor: pointer; }
+.card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+.card.flipped .card-inner { transform: rotateY(180deg); }
+.card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 4px; }
+.card-front { background: var(--bg-card); border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 30px; }
+.card-back { background: var(--bg-card); color: white; border: 1px solid var(--accent); transform: rotateY(180deg); overflow-y: auto; padding: 20px; text-align: left; }
+
+.cat-tag { font-size: 0.65rem; padding: 4px 12px; color: white; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; border-radius: 2px; }
+
+/* SHARED BOX STYLES */
+.calc-box, .quiz-box { background: var(--bg-card); padding: 40px; border-radius: 4px; border: 1px solid #333; text-align: center; max-width: 900px; margin: 0 auto;}
+#schedule-section .calc-box {max-width: 1200px;}
+
+/* QUIZ STYLES */
+.question-text { font-size: 1.6rem; margin: 25px 0; color: #fff; font-weight: 300; }
+.options-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+.option-btn { background: #15181a; border: 1px solid #333; color: white; padding: 20px; border-radius: 4px; cursor: pointer; text-align: left; font-size: 0.95rem; transition: 0.2s; }
+.option-btn:hover { border-color: var(--accent); background: #1c1f22; }
+
+/* CALC STYLES */
+.calc-input { width: 100%; padding: 15px; background: #252a2e; border: 1px solid #444; color: white; font-size: 1.2rem; text-align: center; border-radius: 4px; margin: 20px 0; }
+select.calc-input { font-size: 1rem; appearance: auto; }
+.yield-display { margin-top: 30px; padding: 20px; background: #15181a; border-radius: 4px; border: 1px dashed var(--accent); }
+.yield-value { font-size: 2.5rem; color: var(--accent); font-weight: bold; display: block; }
+
+/* ROSTER STYLES */
+#roster-table th, #roster-table td { white-space: nowrap; border-right: 1px solid #444; }
+#roster-table th:last-child, #roster-table td:last-child { border-right: none; }
+.native-fullscreen-active { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 99999 !important; background: #000 !important; display: flex !important; justify-content: center !important; align-items: center !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; overflow: hidden !important; }
+#close-native-btn { display: none; position: fixed; bottom: 30px; right: 20px; z-index: 100000; background: var(--error); color: white; border: none; padding: 15px 25px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+
+/* MODALS */
+#popup-overlay, #pdf-overlay, #earlyClockOutModal, #trouble-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; justify-content: center; align-items: center; }
+.popup-box { background: #fff; color: #000; padding: 40px; border-radius: 4px; max-width: 600px; width: 90%; }
+#pdf-overlay { flex-direction: column; z-index: 20000; background: #000; }
+.pdf-header { padding: 15px; background: #1c1f22; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--accent); width: 100%;}
+
+@media (max-width: 600px) { h1 { font-size: 1.2rem; letter-spacing: 4px; } .nav-tabs { flex-direction: column; } #btn-native-fullscreen { display: block !important; } header { flex-direction: column; gap: 15px; } .header-logout { position: static; width: 100%;}}
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="login-box">
+    <h2 style="color: var(--accent); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 25px;">Refill Access</h2>
+    
+    <div id="auth-step-1">
+      <div id="access-key-section">
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 15px;">Enter Portal Access Key to continue</p>
+        <input type="password" id="portal-access-key" class="input-box" placeholder="Access Key">
+        <button class="btn-att btn-primary" onclick="verifyAccessKey()">UNLOCK PORTAL</button>
+      </div>
+
+      <div id="regular-login-section" style="display: none;">
+        <input type="text" id="emp-name" class="input-box" placeholder="Full Name (e.g. LASITH)" autocomplete="off">
+        <input type="password" id="emp-pin" class="input-box" placeholder="4-Digit PIN" maxlength="4">
+        <select id="emp-branch" class="input-box" style="display:none; font-size: 0.9rem;">
+          <option value="">-- Select Main Branch --</option>
+          <option value="Hilli Branch">Hilli Branch</option>
+          <option value="Nimah Branch">Nimah Branch</option>
+          <option value="Yahar Branch">Yahar Branch</option>
+          <option value="Sarooj Branch">Sarooj Branch</option>
+          <option value="Riyadh Branch">Riyadh Branch</option>
+        </select>
+        <button class="btn-att btn-primary" id="btn-login-reg" onclick="handleAuth()">VERIFY PIN</button>
+      </div>
+    </div>
+
+    <div id="auth-step-2" style="display:none;">
+      <p style="color: white; margin-bottom: 20px;">Welcome, <strong id="display-name" style="color:var(--accent);">User</strong></p>
+      <button class="btn-att btn-in" onclick="submitAttendance('Clock In')"> CLOCK IN (WiFi/GPS Required)</button>
+      <button class="btn-att btn-study" onclick="startBrowsing()"> JUST BROWSING (Study Mode)</button>
+      <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 15px;">Study mode allows you to view recipes and schedules from anywhere.</p>
+    </div>
+    
+    <p id="status-msg"></p>
+  </div>
+</div>
+
+<div id="dashboard-screen" class="screen">
+    <header>
+      <h1>Refill Reserve</h1>
+      <button id="header-logout-btn" class="header-logout" onclick="promptClockOut()">EXIT PORTAL</button>
+    </header>
+
+    <div class="dashboard-menu">
+        <button class="dash-btn" onclick="openSection('browse-section')">Recipe Cards</button>
+        <button class="dash-btn" onclick="openSection('quiz-section')">Staff Quiz</button>
+        <button class="dash-btn active-dash" onclick="openSection('calc-section')">Yield Calculator</button>
+        <button class="dash-btn" onclick="openSection('dial-section')">Espresso Calibration</button>
+        <button class="dash-btn" onclick="openSection('trouble-section')">Troubleshooting</button>
+        <button class="dash-btn" onclick="openSection('schedule-section')">Schedule</button>
+        <button class="dash-btn" onclick="openSection('contact-section')">Contact Details</button>
+        <button class="dash-btn" onclick="openSection('documents-section')">Documents</button>
+    </div>
+</div>
+
+<div id="main-content" style="display: none; padding: 20px;">
+  <button class="back-btn" onclick="backToDashboard()">← BACK TO DASHBOARD</button>
+
+  <div id="browse-section" class="content-section" style="display:none;">
+    <div class="category-nav">
+      <button class="cat-filter-btn active" onclick="filterCat('All', this)">All</button>
+      <button class="cat-filter-btn" onclick="filterCat('Signature', this)">Signature</button>
+      <button class="cat-filter-btn" onclick="filterCat('Espresso Based', this)">Espresso</button>
+      <button class="cat-filter-btn" onclick="filterCat('Milk Based', this)">Milk Based</button>
+      <button class="cat-filter-btn" onclick="filterCat('Frappe', this)">Frappe</button>
+      <button class="cat-filter-btn" onclick="filterCat('NA', this)">NA</button>
+      <button class="cat-filter-btn" onclick="filterCat('Mojito', this)">Mojito</button>
+      <button class="cat-filter-btn" onclick="filterCat('Matcha', this)">Matcha</button>
+      <button class="cat-filter-btn" onclick="filterCat('Fruit & Smoothies', this)">Fruit & Smoothies</button>
+      <button class="cat-filter-btn" onclick="filterCat('Pour Over', this)">Pour Over</button>
+      <button class="cat-filter-btn" onclick="filterCat('Batch', this)">Batch</button>
+      <button class="cat-filter-btn" onclick="filterCat('Tea', this)">Tea</button>
+    </div>
+    <div class="search-container">
+      <input type="text" id="searchInput" class="search-bar" placeholder="Search by drink name..." onkeyup="renderCards()">
+    </div>
+    <div class="recipe-grid" id="recipeGrid"></div>
+  </div>
+
+  <div id="quiz-section" class="content-section" style="display:none;">
+    <div class="quiz-box">
+      <span class="cat-tag" id="q-cat" style="background: var(--accent);">Category</span>
+      <div class="question-text" id="q-text">Which ingredients belong to this drink?</div>
+      <div class="options-grid" id="q-options"></div>
+    </div>
+  </div>
+
+  <div id="calc-section" class="content-section" style="display:none;">
+    <div class="calc-box">
+      <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:30px;">Yield Calculator</h2>
+      <div class="category-nav" style="border:none;">
+        <button class="cat-filter-btn active" onclick="setCalcDevice('Espresso', 2, this)">Espresso (1:2)</button>
+        <button class="cat-filter-btn" onclick="setCalcDevice('V60', 15, this)">V60 (1:15)</button>
+        <button class="cat-filter-btn" onclick="setCalcDevice('Chemex', 15, this)">Chemex (1:15)</button>
+        <button class="cat-filter-btn" onclick="setCalcDevice('Aeropress', 10, this)">Aeropress (1:10)</button>
+      </div>
+      <label style="display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase;">Enter Coffee Dose (Grams)</label>
+      <input type="number" id="calcDose" class="calc-input" placeholder="0" oninput="calculateYield()">
+      <div class="yield-display">
+        <span style="display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase;">Target Yield (Output)</span>
+        <span class="yield-value"><span id="yieldResult">0</span>g</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="dial-section" class="content-section" style="display:none;">
+    <div class="calc-box" style="text-align: left;">
+      <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom: 10px; text-align:center;">The Bullseye Calibration</h2>
+      <p style="text-align:center; color:var(--text-secondary); font-size:0.85rem; margin-bottom:20px;">Step-by-step diagnostic tool for trainee baristas to lock in the perfect extraction.</p>
+      
+      <div style="background:#15181a; padding: 15px; border-radius:4px; border-left: 4px solid var(--accent); margin-bottom:25px;">
+        <strong style="color:white; display:block; margin-bottom:8px; font-size:0.9rem; letter-spacing:1px;">⚠️ PRO-RULES</strong>
+        <ul style="margin:0; padding-left:20px; color:var(--text-secondary); font-size:0.85rem; line-height:1.6;">
+          <li><strong>Static Dose:</strong> Keep dry weight constant (e.g., 20g).</li>
+          <li><strong>One Move:</strong> Fix the Flavor first, then the Body.</li>
+          <li><strong>Purge:</strong> Always remove one shot after a grind adjustment.</li>
+        </ul>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; background: #252a2e; padding: 15px; border-radius: 4px; border: 1px solid #444; margin-bottom: 20px;">
+        <div><span style="display:block; font-size:0.65rem; color:#ccc; text-transform:uppercase;">Dose (g)</span><input type="number" id="dialDose" class="calc-input" placeholder="20.0" step="0.1" style="margin: 5px 0; padding:10px; font-size:1rem;"></div>
+        <div><span style="display:block; font-size:0.65rem; color:#ccc; text-transform:uppercase;">Yield (g)</span><input type="number" id="dialYield" class="calc-input" placeholder="40.0" step="0.1" style="margin: 5px 0; padding:10px; font-size:1rem;"></div>
+        <div><span style="display:block; font-size:0.65rem; color:#ccc; text-transform:uppercase;">Time (s)</span><input type="number" id="dialTime" class="calc-input" placeholder="28" style="margin: 5px 0; padding:10px; font-size:1rem;"></div>
+      </div>
+
+      <div id="wizard-container" style="border: 1px solid #333; border-radius: 4px; padding: 25px; background: var(--bg-card);">
+        <div id="wizard-step-1" class="wizard-step">
+          <h3 style="color:white; margin-top:0; font-weight:400;">Step 1: Taste The Shot</h3>
+          <p style="color:var(--text-secondary); font-size:0.95rem;">Please pull a shot using the parameters above and taste it. Is it balanced?</p>
+          <div style="display: flex; flex-direction:column; gap: 12px; margin-top:25px;">
+            <button class="option-btn" style="text-align:center; background:#1e3d2f; border-color:#2ecc71; color:#2ecc71; font-weight:bold;" onclick="markPerfect()">✅ YES - It's Balanced & Sweet</button>
+            <button class="option-btn" style="text-align:center; border-color:var(--error);" onclick="selectStep('wizard-step-2')">❌ NO - It has a Flaw</button>
+          </div>
+        </div>
+
+        <div id="wizard-step-2" class="wizard-step" style="display:none;">
+          <h3 style="color:white; margin-top:0; font-weight:400;">Step 2: Identify Dominant Flaw</h3>
+          <p style="color:var(--text-secondary); font-size:0.95rem;">What is the main issue with the shot?</p>
+          <div style="display: flex; flex-direction:column; gap: 12px; margin-top:25px;">
+            <button class="option-btn" onclick="selectStep('wizard-step-flavor')">Flavor Issue (Taste is off)</button>
+            <button class="option-btn" onclick="selectStep('wizard-step-body')">Body Issue (Texture/Flow is off)</button>
+            <button class="option-btn" style="border-color:var(--error);" onclick="selectStep('wizard-step-emergency')">Emergency (Both are failing)</button>
+            <button class="tab-btn" style="margin-top:15px;" onclick="selectStep('wizard-step-1')">Back</button>
+          </div>
+        </div>
+
+        <div id="wizard-step-flavor" class="wizard-step" style="display:none;">
+          <h3 style="color:white; margin-top:0; font-weight:400;">Flavor Flaws (The Ratio Lever)</h3>
+          <div style="display: flex; flex-direction:column; gap: 12px; margin-top:25px;">
+            <button class="option-btn" onclick="setFlawAndAction('Sour / Sharp', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: INCREASE YIELD</strong><br><br><span style=\'font-size:0.9rem; color:#ccc;\'>Run the shot longer. Adjusting the ratio lever will extract more sweetness to balance the sourness.</span>', 'Increase Yield')">Sour / Sharp / Salty</button>
+            <button class="option-btn" onclick="setFlawAndAction('Bitter / Dry', '<strong style=\'font-size: 1.2rem; color:var(--accent);\'>Action: DECREASE YIELD</strong><br><br><span style=\'font-size:0.9rem; color:#ccc;\'>Stop the shot earlier. This fixes the chemistry by leaving bitter compounds behind.</span>', 'Decrease Yield')"> Bitter / Dry / Ashy</button>
+            <button class="tab-btn" style="margin-top:15px;" onclick="selectStep('wizard-step-2')">Back</button>
+          </div>
+        </div>
+
+        <div id="wizard-step-body" class="wizard-step" style="display:none;">
+          <h3 style="color:white; margin-top:0; font-weight:400;">Body Flaws (The Grind Lever)</h3>
+          <div style="display: flex; flex-direction:column; gap: 12px; margin-top:25px;">
+            <button class="option-btn" onclick="setFlawAndAction('Thin / Watery', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: GRIND FINER</strong><br><br><span style=\'font-size:0.9rem; color:#ccc;\'>Slow it down. Adjusting the grind lever will fix the physical flow and increase texture.</span>', 'Grind Finer')">Thin / Watery</button>
+            <button class="option-btn" onclick="setFlawAndAction('Heavy / Muddled', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: GRIND COARSER</strong><br><br><span style=\'font-size:0.9rem; color:#ccc;\'>Speed it up. This will clean up the body and fix the physical flow.</span>', 'Grind Coarser')">Heavy / Muddled</button>
+            <button class="tab-btn" style="margin-top:15px;" onclick="selectStep('wizard-step-2')">Back</button>
+          </div>
+        </div>
+
+        <div id="wizard-step-emergency" class="wizard-step" style="display:none;">
+          <h3 style="color:var(--error); margin-top:0; font-weight:400;">The Emergency Matrix</h3>
+          <p style="color:var(--text-secondary); font-size:0.85rem;">Reminder: Fix the flavor first, then the body.</p>
+          <div style="display: flex; flex-direction:column; gap: 12px; margin-top:25px;">
+            <button class="option-btn" onclick="setFlawAndAction('Thin & Sour', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: INCREASE YIELD & GRIND FINER</strong>', 'Increase Yield & Grind Finer')">Thin & Sour</button>
+            <button class="option-btn" onclick="setFlawAndAction('Heavy & Sour', '<strong style=\'font-size:1.2rem; color:var(--accent);\'>Action: INCREASE YIELD & GRIND COARSER</strong>', 'Increase Yield & Grind Coarser')">Heavy & Sour</button>
+            <button class="option-btn" onclick="setFlawAndAction('Heavy & Bitter', '<strong style=\'font-size: 1.2rem; color:var(--accent);\'>Action: DECREASE YIELD & GRIND COARSER</strong>', 'Decrease Yield & Grind Coarser')">Heavy & Bitter</button>
+            <button class="option-btn" onclick="setFlawAndAction('Thin & Bitter', '<strong style=\'font-size: 1.2rem; color:var(--accent);\'>Action: DECREASE YIELD & GRIND FINER</strong>', 'Decrease Yield & Grind Finer')">Thin & Bitter</button>
+            <button class="tab-btn" style="margin-top:15px;" onclick="selectStep('wizard-step-2')">Back</button>
+          </div>
+        </div>
+
+        <div id="wizard-result" class="wizard-step" style="display:none;">
+          <h3 style="color:var(--accent); margin-top:0; font-weight:400;">Recommended Action</h3>
+          <div id="wizard-result-msg" style="padding:20px; background:#15181a; border-left:4px solid var(--accent); margin-top: 15px; margin-bottom:20px; font-size:1rem;"></div>
+          <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:25px;">Make this adjustment, purge (if grind changed), pull a new shot, and update your Dose/Yield/Time boxes at the top.</p>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <button class="tab-btn active" style="width:100%; font-size:1rem; padding:15px;" onclick="applyAndRetest()">🔄 I Adjusted It - Re-Test New Shot</button>
+            <button class="tab-btn" style="width:100%;" onclick="selectStep('wizard-step-2')">🔙 Change Flaw</button>
+          </div>
+        </div>
+
+        <div id="wizard-success" class="wizard-step" style="display:none; text-align:center;">
+          <h2 style="color:#2ecc71; margin-top:0;">🎉 Perfect Shot Achieved!</h2>
+          <p style="color:var(--text-secondary); font-size:0.95rem;">Parameters are successfully locked in.</p>
+          <div style="text-align:left; margin-top:20px; margin-bottom:10px;"><span style="font-size: 0.65rem; color: #888; text-transform: uppercase;">Calibration Log:</span></div>
+          <div id="calibration-log-display" style="text-align:left; background:#15181a; padding:15px; border-radius:4px; font-size:0.85rem; color:#aaa; margin-bottom:25px; max-height:200px; overflow-y:auto; border: 1px solid #333; line-height: 1.6;"></div>
+          <button class="tab-btn active" style="width:100%; font-size:1rem; padding:15px; background:#25D366; border-color:#25D366; color:#fff; font-weight:bold; margin-bottom:15px;" onclick="sendToManager()">📱 Send Report to Store Manager</button>
+          <button class="tab-btn" style="width:100%;" onclick="resetWizard()">🔄 Start New Calibration</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="trouble-section" class="content-section" style="display:none;">
+    <div class="calc-box">
+      <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:30px;">Troubleshooting Guide</h2>
+      <div class="category-nav" style="border:none;">
+        <button class="cat-filter-btn active" onclick="filterTrouble('Grinders', this)">Grinders</button>
+        <button class="cat-filter-btn" onclick="filterTrouble('Espresso Machines', this)">Espresso Machines</button>
+        <button class="cat-filter-btn" onclick="filterTrouble('Boilers', this)">Boilers</button>
+        <button class="cat-filter-btn" onclick="filterTrouble('Milk', this)">Milk</button>
+        <button class="cat-filter-btn" onclick="filterTrouble('Drinks', this)">Drinks</button>
+      </div>
+      <label style="display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase;">Select issue:</label>
+      <select id="troubleSelect" class="calc-input" onchange="showTroublePopup(this)" style="text-align: left;">
+        <option value="">-- Choose an issue --</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="schedule-section" class="content-section" style="display:none;">
+    <div class="calc-box" style="padding: 25px;">
+      <h2 style="color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:20px;">Staff Schedule</h2>
+      <div class="category-nav" style="border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px;">
+        <button class="cat-filter-btn active" id="btn-default-branch" onclick="loadNativeSchedule('hilli', this)">Hilli</button>
+        <button class="cat-filter-btn" onclick="loadNativeSchedule('nimah', this)">Nimah</button>
+        <button class="cat-filter-btn" onclick="loadNativeSchedule('yahar', this)">Yahar</button>
+        <button class="cat-filter-btn" onclick="loadNativeSchedule('sarooj', this)">Sarooj</button>
+        <button class="cat-filter-btn" onclick="loadNativeSchedule('riyadh', this)">Riyadh</button>
+      </div>
+      <div class="nav-tabs" style="margin-bottom: 20px;">
+        <button class="tab-btn active" id="btn-view-roster" onclick="switchScheduleView('roster')">Full Roster</button>
+        <button class="tab-btn" id="btn-view-today" onclick="switchScheduleView('today')">Today's Team</button>
+        <button class="tab-btn" id="btn-view-personal" onclick="switchScheduleView('personal')">My Schedule</button>
+      </div>
+      <div id="sched-loader" style="color:var(--accent); margin: 20px 0; font-weight:bold; letter-spacing:1px; display:none;">SYNCING WITH DATABASE...</div>
+      
+      <div id="view-roster" style="width: 100%;">
+        <button id="btn-native-fullscreen" class="tab-btn" onclick="toggleNativeFullscreen()" style="width:100%; margin-bottom:15px; background:var(--accent); color:#000; font-weight:bold; display:none;">FULL SCREEN VIEW</button>
+        <div id="roster-fullscreen-wrapper" style="width: 100%; overflow-x: auto; background:#15181a; border-radius:4px; padding:10px;">
+          <table id="roster-table" style="width: 100%; border-collapse: collapse; text-align: center; color: white; font-size: 0.8rem; border:1px solid #333;"></table>
+        </div>
+        <button id="close-native-btn" onclick="toggleNativeFullscreen()">CLOSE VIEW</button>
+      </div>
+      
+      <div id="view-today" style="display:none; text-align:left;">
+        <h3 style="color:var(--accent); border-bottom:1px solid #333; padding-bottom:10px; margin-top:0;">Who's Working Today</h3>
+        <div id="today-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top:20px;"></div>
+      </div>
+      
+      <div id="view-personal" style="display:none; text-align:center;">
+        <span style="display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase;">Select your name</span>
+        <select id="emp-select" class="calc-input" onchange="generatePersonalCard()" style="margin-top:10px; margin-bottom: 30px; text-align:left;">
+          <option value="">-- Dropdown --</option>
+        </select>
+        <div id="flashcard-wrapper" style="display:none; align-items: center; flex-direction: column;">
+          <div id="personal-flashcard" style="background: #0f1113; border: 2px solid var(--accent); border-radius: 8px; width: 100%; max-width: 380px; padding: 25px; text-align: left; color: white; position: relative;"></div>
+          <button id="download-btn" class="tab-btn active" style="margin-top:25px; width: 100%; max-width: 380px; background:#2ecc71; border-color:#2ecc71; color:#000; font-weight:bold; font-size:0.9rem; padding:15px;" onclick="downloadFlashcard()">📸 DOWNLOAD SCHEDULE</button>
+          <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:10px;">Saves directly to your phone's gallery.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="contact-section" class="content-section" style="display:none;">
+    <div class="recipe-grid" id="contactGrid"></div>
+  </div>
+  
+  <div id="documents-section" class="content-section" style="display:none;">
+    <div class="recipe-grid" id="docsGrid"></div>
+  </div>
+</div>
+
+<div id="popup-overlay">
+  <div class="popup-box">
+    <h2 id="popup-title" style="color:var(--error); margin-top:0; letter-spacing:2px;">INCORRECT</h2>
+    <p id="popup-desc">Correct Recipe for <strong><span id="p-name"></span></strong>:</p>
+    <div style="text-align: left; background: #f9f9f9; padding: 20px; border-radius: 4px; border-left: 4px solid var(--accent); margin: 20px 0;">
+      <span style="display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase;" id="label-1">Ingredients</span><div id="p-ing" style="font-size: 0.95rem; color: #333; padding-top: 5px; font-weight: 400;"></div>
+      <span style="display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase; margin-top:15px;" id="label-2">Method</span><div id="p-meth" style="font-size: 0.95rem; color: #333; padding-top: 5px; font-weight: 400;"></div>
+      <span style="display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase; margin-top:15px;" id="label-3">Equipment</span><div id="p-eq" style="font-size: 0.95rem; color: #333; padding-top: 5px; font-weight: 400;"></div>
+      <span style="display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase; margin-top:15px;" id="label-4">Serving</span><div id="p-serv" style="font-size: 0.95rem; color: #333; padding-top: 5px; font-weight: 400;"></div>
+    </div>
+    <button class="tab-btn active" style="width: 100%;" onclick="closePopup()">I Understand - Next</button>
+  </div>
+</div>
+
+<div id="trouble-modal">
+  <div style="background: var(--bg-card); border: 1px solid var(--accent); padding: 40px; border-radius: 8px; max-width: 600px; width: 90%; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+    <div style="text-align:center; margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom: 15px;">
+      <h2 style="color:var(--accent); margin:0; letter-spacing:2px; font-size: 1.4rem; text-transform: uppercase;" id="t-issue-title">ISSUE</h2>
+      <span style="color:var(--text-secondary); font-size: 0.8rem; letter-spacing: 1px;" id="t-cat-title">CATEGORY</span>
+    </div>
+    <div style="margin-bottom: 25px;">
+      <h3 style="color: var(--accent); font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Possible Diagnosis</h3>
+      <div id="t-diag" style="background: #15181a; padding: 20px; border-radius: 4px; color: white; font-size: 1rem; line-height: 1.6; border-left: 4px solid var(--accent);"></div>
+    </div>
+    <div style="margin-bottom: 35px;">
+      <h3 style="color: #2ecc71; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Recommended Treatment</h3>
+      <div id="t-treat" style="background: #15181a; padding: 20px; border-radius: 4px; color: white; font-size: 1rem; line-height: 1.6; border-left: 4px solid #2ecc71;"></div>
+    </div>
+    <button class="tab-btn active" style="width: 100%; padding: 15px; font-size: 1rem;" onclick="closeTroubleModal()">BACK</button>
+  </div>
+</div>
+
+<div id="pdf-overlay">
+  <div class="pdf-header">
+    <span style="color:var(--accent); font-weight:bold; letter-spacing:2px;">STAFF HANDBOOK</span>
+    <button onclick="closePDF()" style="background:var(--error); color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-weight:bold;">CLOSE</button>
+  </div>
+  <div style="flex-grow:1; -webkit-overflow-scrolling:touch; overflow-y:scroll; background:#333;">
+    <iframe id="pdf-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
+  </div>
+</div>
+
+<div id="earlyClockOutModal">
+  <div style="background: var(--bg-card); padding: 30px; border-radius: 8px; text-align: center; width: 90%; max-width: 400px; border: 1px solid var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+    <h2 style="color: #ffb300; margin-top: 0; font-weight: 400; letter-spacing: 2px;">⚠️ WAIT A MINUTE!</h2>
+    <p style="color: var(--text-primary); margin-bottom: 30px; font-size: 1.1rem;">You haven't completed your 9-hour shift yet. Are you sure you want to clock out?</p>
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+      <button onclick="closeEarlyModal()" style="padding: 15px; border-radius: 4px; background: var(--accent); color: #000; border: none; font-weight: bold; font-size: 1rem; cursor: pointer;">🔙 BACK TO FLOOR</button>
+      <button onclick="executeClockOut()" style="padding: 15px; border-radius: 4px; background: transparent; color: var(--error); border: 1px solid var(--error); font-weight: bold; font-size: 1rem; cursor: pointer;">ANYWAY, PROCEED</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =========================================================
+// 0. PORTAL SECURITY (INVITATION KEY LOGIC)
+// =========================================================
+const PORTAL_KEY = "REFILL2028";
+
+// පේජ් එක ලෝඩ් වෙද්දීම කලින් කේතය ගහලද බලනවා
+window.addEventListener('load', () => {
+  const savedKey = localStorage.getItem('refill_access_key');
+  if (savedKey === PORTAL_KEY) {
+    document.getElementById('access-key-section').style.display = 'none';
+    document.getElementById('regular-login-section').style.display = 'block';
+  }
+});
+
+// කේතය හරිද කියලා චෙක් කරනවා
+function verifyAccessKey() {
+  const enteredKey = document.getElementById('portal-access-key').value.trim();
+  const msg = document.getElementById('status-msg');
+  
+  if (enteredKey === PORTAL_KEY) {
+    localStorage.setItem('refill_access_key', PORTAL_KEY);
+    msg.innerText = ""; 
+    document.getElementById('access-key-section').style.display = 'none';
+    document.getElementById('regular-login-section').style.display = 'block';
+  } else {
+    msg.style.color = "var(--error)";
+    msg.innerText = "Invalid Access Key! Contact Manager.";
+  }
+}
+// =========================================================
+// 1. SMART AUTHENTICATION & DEVICE REGISTRATION LOGIC
+// =========================================================
+const G_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx8e_UMbVS5_8InmFhqKmdjSX-LB7jBXS2HV8dn1htSzJ0MwzDgiSIpcx5T8REkNATm/exec";
+const LOCATIONS = {
+  "Hilli Branch": { lat: 24.263767, lng: 55.768542 },
+  "Nimah Branch": { lat: 24.110154, lng: 55.699431 },
+  "Yahar Branch": { lat: 24.224193, lng: 55.551804 },
+  "Sarooj Branch": { lat: 24.188792, lng: 55.799495 },
+  "Riyadh Branch": { lat: 24.358355, lng: 54.745778 }
+};
+
+let deviceId = localStorage.getItem('refill_device_id');
+if (!deviceId) {
+  deviceId = 'DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+  localStorage.setItem('refill_device_id', deviceId);
+}
+let rememberedName = localStorage.getItem('refill_user_name');
+let rememberedBranch = localStorage.getItem('refill_user_branch');
+let isStudyMode = false;
+
+function showClockInScreen(name) {
+  document.getElementById('auth-step-1').style.display = 'none';
+  document.getElementById('auth-step-2').style.display = 'block';
+  if(document.getElementById('display-name')) {
+    document.getElementById('display-name').innerText = name;
+  }
+}
+
+if (rememberedName) {
+  document.getElementById('emp-name').value = rememberedName;
+  checkStatusOnLoad(rememberedName);
+}
+
+async function checkStatusOnLoad(name) {
+  try {
+    let res = await fetch(G_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ name: name, action: "Check_Status" })
+    });
+    let result = await res.json();
+    if (result.status === "In" || (result.data && result.data.status === "In")) {
+      openMainDashboard();
+    } else {
+      if(document.getElementById('emp-pin')) document.getElementById('emp-pin').focus();
+    }
+  } catch(e) {
+    console.log("Status check failed on load", e);
+  }
+}
+
+async function handleAuth() {
+  const name = document.getElementById('emp-name').value.trim().toUpperCase();
+  const pin = document.getElementById('emp-pin').value;
+  const branchSelect = document.getElementById('emp-branch');
+  const msg = document.getElementById('status-msg');
+  
+  if (!name || !pin) { msg.innerText = "Please enter Name and PIN."; return; }
+  msg.style.color = "#ffb300";
+  msg.innerText = "Checking Credentials...";
+  
+  try {
+    let res = await fetch(G_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ name: name, pin: pin, deviceId: deviceId, action: "Check_Status" })
+    });
+    let result = await res.json();
+    
+    if (result.status === "user_not_found") {
+      if (branchSelect.style.display === "none") {
+        branchSelect.style.display = "block";
+        msg.innerText = "New Device/User detected. Select branch & click VERIFY.";
+        return;
+      }
+      if (!branchSelect.value) { msg.innerText = "Select your main branch to register."; return; }
+      msg.innerText = "Registering device...";
+      let regRes = await fetch(G_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ name: name, pin: pin, deviceId: deviceId, branch: branchSelect.value, action: "Register" })
+      });
+      let regResult = await regRes.json();
+      if (regResult.status === "registered_success") {
+        localStorage.setItem('refill_user_name', name);
+        localStorage.setItem('refill_user_branch', branchSelect.value);
+        showClockInScreen(name);
+      } else {
+        msg.style.color = "var(--error)";
+        msg.innerText = "Registration Failed. Try again.";
+      }
+    } else if (result.status === "wrong_pin") {
+      msg.style.color = "var(--error)";
+      msg.innerText = "Error: Invalid PIN!";
+    } else if (result.status === "status_checked" || result.status === "In" || result.status === "Out") {
+      localStorage.setItem('refill_user_name', name);
+      if (result.status === "In" || (result.data && result.data.status === "In")) {
+        openMainDashboard();
+      } else {
+        showClockInScreen(name);
+      }
+    }
+  } catch (e) {
+    msg.style.color = "var(--error)";
+    msg.innerText = "Network Error. Please check connection.";
+  }
+}
+
+// =========================================================
+// 2. STUDY MODE & ATTENDANCE LOGIC (WITH iPHONE GPS FIX)
+// =========================================================
+async function startBrowsing() {
+  isStudyMode = true;
+  const name = localStorage.getItem('refill_user_name');
+  let branchName = localStorage.getItem('refill_user_branch') || document.getElementById('emp-branch').value;
+  const msg = document.getElementById('status-msg');
+  msg.style.color = "#3498db";
+  msg.innerText = "Entering Study Mode (No GPS required)...";
+  try {
+    const res = await fetch(G_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ name: name, pin: document.getElementById('emp-pin').value, deviceId: deviceId, action: "Just Browsing", branch: branchName, location: "Off-site / Home" })
+    });
+    const result = await res.json();
+    if (result.status === "success" || result.status === "Browsing") {
+      document.getElementById('header-logout-btn').innerText = "EXIT PORTAL";
+      document.getElementById('header-logout-btn').style.background = "#333";
+      openMainDashboard();
+    } else {
+      msg.style.color = "var(--error)";
+      msg.innerText = "Error entering Study Mode.";
+    }
+  } catch (e) { msg.innerText = "Error: Check Internet."; }
+}
+
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3;
+  const p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
+  const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dp/2)**2 + Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+async function submitAttendance(type) {
+  const name = localStorage.getItem('refill_user_name');
+  let branchName = localStorage.getItem('refill_user_branch');
+  if(!branchName) branchName = document.getElementById('emp-branch').value;
+  const msg = document.getElementById('status-msg');
+  const pin = document.getElementById('emp-pin').value;
+  
+  msg.style.color = "#ffb300";
+  msg.innerText = "Verifying Connection...";
+
+  // 1. මෙතන තමයි ඔයාගේ Branches වල IP ටික තියෙන්නේ. පස්සේ මේ 0.0.0.0 අයින් කරලා හරියටම IP එක දාන්න.
+  const BRANCH_IPS = {
+  "Nimah Branch": "2.49.172.212",
+  "Hilli Branch": "0.0.0.0",
+  "Yahar Branch": "0.0.0.0",
+  "Sarooj Branch": "0.0.0.0",
+  "Riyadh Branch": "0.0.0.0"
+};
+
+  const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+  // පොදු Function එක Sheet එකට යවන්න (දෙගොල්ලන්ටම පාවිච්චි වෙන්නේ මේකයි)
+  async function sendToSheet(locationData) {
+    try {
+      const res = await fetch(G_SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({ name: name, pin: pin, deviceId: deviceId, action: type, branch: branchName, location: locationData })
+      });
+      const result = await res.json();
+      
+      if (result.status === "device_limit_reached") {
+        msg.style.color = "var(--error)";
+        msg.innerText = "Error: You have already Clocked In from this device today.";
+        alert("You have already Clocked In from this device today.");
+        return;
+      }
+      
+      if (result.status === "success" || result.status === "In" || result.status === "Out") {
+        if(type === "Clock In") {
+          localStorage.setItem('refill_clock_in_time', Date.now());
+          isStudyMode = false; // මේක ඔයාගේ පරණ කෝඩ් එකේ තිබ්බ එකක්, ඒකත් එහෙම්මම දැම්මා
+          openMainDashboard();
+        } else {
+          localStorage.removeItem('refill_clock_in_time');
+          alert("Clock Out Successful. Goodbye!");
+          location.reload();
+        }
+      } else {
+        msg.style.color = "var(--error)";
+        msg.innerText = "Error: " + result.status;
+      }
+    } catch (e) { 
+        msg.style.color = "var(--error)";
+        msg.innerText = "Error: Check Internet connection."; 
+    }
+  }
+
+  // 2. Apple Users ලාට WiFi IP Check එක කරන තැන
+  if (isApple) {
+    statusElement.innerText = "Checking Store WiFi (iOS)...";
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        if (!response.ok) throw new Error('API Blocked');
+        const data = await response.json();
+        const userIP = data.ip;
+        
+        // ඔයා දීපු branchName එකට අදාළව IP එක තියෙනවද බලනවා
+        const storeIP = BRANCH_IPS[branchName];
+        
+        if (!storeIP) {
+            alert("Error: Branch name mismatch in system. Please contact manager.");
+            return;
+        }
+
+        const userParts = userIP.split('.');
+        const storeParts = storeIP.split('.');
+        
+        let isIpMatched = (userParts[0] === storeParts[0] && 
+                          userParts[1] === storeParts[1] && 
+                          userParts[2] === storeParts[2]);
+
+        if (isIpMatched) {
+            statusElement.innerText = "WiFi Verified! Submitting...";
+            await sendToSheet("Verified via Store WiFi (iOS)");
+        } else {
+            statusElement.style.color = "var(--error)";
+            statusElement.innerText = "Error: Not on Store WiFi. (Your IP: " + userIP + ")";
+        }
+    } catch (err) {
+        // ඇපල් ෆෝන් එකේ සෙටින්ග්ස් නිසා API එක වැඩ නැත්නම් මෙතනට එනවා
+        statusElement.style.color = "var(--error)";
+        statusElement.innerText = "Network Error: Please disable 'Limit IP Tracking' in WiFi settings.";
+    }
+} 
+  // 3. Android Users ලාට සුපුරුදු GPS Check එක කරන තැන
+  else {
+    msg.innerText = "Verifying Location (GPS)...";
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const dist = getDistance(pos.coords.latitude, pos.coords.longitude, LOCATIONS[branchName].lat, LOCATIONS[branchName].lng);
+      
+      if (dist > 30) {
+        msg.style.color = "var(--error)";
+        msg.innerText = "Location Denied: You are " + Math.round(dist) + "m away.";
+        alert("Attendance Denied: You are not inside the cafe.");
+        return;
+      }
+      
+      msg.innerText = "Location Verified! Submitting " + type + "...";
+      // ලින්ක් එක හැදුවා හරියටම වැඩ කරන්න
+      const locString = `http://googleusercontent.com/maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+      await sendToSheet(locString);
+
+    }, (error) => { 
+      msg.style.color = "var(--error)";
+      msg.innerText = "GPS Error: Please enable location.";
+      alert("Please enable Location Services.");
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+  }
+}
+
+function openMainDashboard() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('dashboard-screen').style.display = 'block';
+  document.getElementById('main-content').style.display = 'none';
+  fetchRecipes(); // Pre-load data
+}
+
+// =========================================================
+// NEW: DASHBOARD NAVIGATION LOGIC
+// =========================================================
+function openSection(sectionId) {
+    // Hide Dashboard
+    document.getElementById('dashboard-screen').style.display = 'none';
+    
+    // Show Main Content Area
+    document.getElementById('main-content').style.display = 'block';
+
+    // Hide all content sections
+    document.querySelectorAll('.content-section').forEach(s => {
+        s.style.display = 'none';
+    });
+
+    // Show the requested section
+    document.getElementById(sectionId).style.display = 'block';
+
+    // Call specific init functions if needed
+    if(sectionId === 'quiz-section') startNewQuestion();
+    if(sectionId === 'contact-section') renderContacts();
+    if(sectionId === 'documents-section') renderDocuments();
+}
+
+function backToDashboard() {
+    // Hide Main Content Area
+    document.getElementById('main-content').style.display = 'none';
+    
+    // Show Dashboard
+    document.getElementById('dashboard-screen').style.display = 'block';
+}
+
+
+function promptClockOut() {
+  if (isStudyMode) {
+    if(confirm("Exit Study Mode?")) location.reload();
+    return;
+  }
+  let clockInTime = localStorage.getItem('refill_clock_in_time');
+  let elapsedHours = 9;
+  if (clockInTime) {
+    let now = Date.now();
+    elapsedHours = (now - parseInt(clockInTime)) / (1000 * 60 * 60);
+  }
+  if (clockInTime && elapsedHours < 9) {
+    document.getElementById('earlyClockOutModal').style.display = 'flex';
+  } else {
+    if(confirm("Are you sure you want to Clock Out and exit the portal?")) {
+      executeClockOut();
+    }
+  }
+}
+
+function closeEarlyModal() {
+  document.getElementById('earlyClockOutModal').style.display = 'none';
+}
+
+function executeClockOut() {
+  document.getElementById('earlyClockOutModal').style.display = 'none';
+  document.getElementById('dashboard-screen').style.display = 'none';
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('auth-step-1').style.display = 'none';
+  document.getElementById('auth-step-2').style.display = 'block';
+  submitAttendance('Clock Out');
+}
+
+// =========================================================
+// 3. YOUR ORIGINAL PORTAL CODE & DATA (UNTOUCHED)
+// =========================================================
+let activeCat = "All";
+let currentRatio = 2;
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ13wVqduebIg7mNo0ppS0BGucdTT8rviaMw6-FZcATLyJ11aBE8809JXrTzzQlsjAPuyJTy0R1H9qg/pub?gid=0&single=true&output=csv";
+let data = [];
+
+const troubleshootingData = [
+  { cat: "Grinders", issue: "Grinder blocked - motor sounds but nothing out", diag: "Hopper gate closed, grind too fine, or oily beans.", treat: "Close gate, remove hopper, vacuum out retained grinds." },
+  { cat: "Grinders", issue: "Grinder blocked - motor not turning", diag: "Jamming caused by fines/oil; potential blown capacitor.", treat: "Clear grinds. If no spin, seek professional cleaning." },
+  { cat: "Grinders", issue: "Grinder not switching on", diag: "Hopper safety switch or circuit breaker.", treat: "Check hopper seating and external circuit breaker." },
+  { cat: "Grinders", issue: "Grinder not accurate", diag: "Grind-retention issue.", treat: "Purge grinds after adjustments." },
+  { cat: "Espresso Machines", issue: "Cannot get portafilter into group", diag: "Basket not level, residue buildup, or overdosing.", treat: "Clean screen/gasket. Check dose with scales." },
+  { cat: "Espresso Machines", issue: "Group head leaking during shot", diag: "Worn gasket or residue buildup.", treat: "Clean/replace gasket. Wipe basket rim." },
+  { cat: "Espresso Machines", issue: "Pucks stuck to shower screen", diag: "Pump pressure too high.", treat: "Check pump pressure. Flush to release puck." },
+  { cat: "Boilers", issue: "Steam wand too aggressive / Milk spills", diag: "Pressure > 1.3 bars or large tip holes.", treat: "Consult technician or use larger pitcher." },
+  { cat: "Boilers", issue: "Milk heating too slow", diag: "Pressure < 1 bar or blocked tip.", treat: "Clean tip. Check pressure gauge." },
+  { cat: "Milk", issue: "Foam breaking up immediately", diag: "Sour milk or UV light damage.", treat: "Store milk away from sun. Sour milk won't foam." },
+  { cat: "Milk", issue: "Milk too bubbly", diag: "Late aeration or over-aeration.", treat: "Add air early, before milk gets warm." },
+  { cat: "Drinks", issue: "Inconsistent beverage weight", diag: "Overdosing or underdosing.", treat: "Use scales to calibrate grinder timer." },
+  { cat: "Drinks", issue: "Drink too cold", diag: "Temp < 55C or unheated cups.", treat: "Stack cups max 3 high. Verify with thermometer." }
+];
+
+async function fetchRecipes() {
+  try {
+    const response = await fetch(SHEET_URL);
+    const csvText = await response.text();
+    const rows = csvText.split('\n').slice(1);
+    data = rows.map(row => {
+      const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+      return {
+        name: cols[0]?.replace(/"/g, ''),
+        cat: cols[1]?.replace(/"/g, ''),
+        color: cols[2]?.replace(/"/g, '') || "var(--accent)",
+        ing: cols[3]?.replace(/"/g, ''),
+        method: cols[4]?.replace(/"/g, ''),
+        eq: cols[5]?.replace(/"/g, ''),
+        serv: cols[6]?.replace(/"/g, '')
+      };
+    }).filter(item => item.name);
+    renderCards();
+    if(typeof startNewQuestion === 'function') startNewQuestion();
+  } catch (error) { console.error("Error loading recipes:", error); }
+}
+
+window.onload = () => {
+  filterTrouble('Grinders', document.querySelector('.cat-filter-btn.active'));
+  loadNativeSchedule('hilli', document.getElementById('btn-default-branch'));
+};
+
+const contactData = [
+  { name: "Shashikant Joshi", role: "Operations Manager", location: "Refill Reserve", phone: "0528797089" },
+  { name: "Saad Khan", role: "Operations Manager", location: "Refill Roastery", phone: "0565460813" },
+  { name: "Rolly Celzo", role: "HR Manager", location: "Refill Roastery/Reserve", phone: "0565460812" },
+  { name: "Ajit Tamang", role: "QC", location: "Refill Roastery/Reserve", phone: "0544640259" },
+  { name: "Washiq", role: "Junior Accountant", location: "Refill Roastery/Reserve", phone: "0569608981" },
+  { name: "Refill Roastery - Hilli", role: "Branch Contact", location: "Hilli", phone: "037531351" },
+  { name: "Refill Reserve - Hilli", role: "Branch Contact", location: "Hilli", phone: "037366307" }
+];
+
+const docData = [
+  { name: "Hand book", description: "Official staff guidelines and protocol.", file: "https://drive.google.com/file/d/1cqX2cwt8nLiVJDOXf1VZyiUUGRf4wYsC/preview" },
+  { name: "Leave application form", description: "Standard form for leave requests.", file: "https://drive.google.com/uc?export=download&id=1S3HEygyR1R8cVAzNKlb86m1jTSSjI5rh&authuser=2" },
+  { name: "Salary advance form", description: "Official form for salary advance requests.", file: "https://drive.google.com/uc?export=download&id=14perFQsSMCfTMP4Y2SOuWpzh3w_VSoh3" }
+];
+
+function filterTrouble(cat, btn) {
+  const parent = btn.parentElement;
+  parent.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const select = document.getElementById('troubleSelect');
+  select.innerHTML = '<option value="">-- Choose an issue --</option>';
+  troubleshootingData.filter(d => d.cat === cat).forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = JSON.stringify(d);
+    opt.innerText = d.issue;
+    select.appendChild(opt);
+  });
+}
+
+function showTroublePopup(select) {
+  if(!select.value) return;
+  const item = JSON.parse(select.value);
+  document.getElementById('t-issue-title').innerText = item.issue;
+  document.getElementById('t-cat-title').innerText = item.cat.toUpperCase();
+  document.getElementById('t-diag').innerText = item.diag;
+  document.getElementById('t-treat').innerText = item.treat;
+  document.getElementById('trouble-modal').style.display = 'flex';
+  select.value = "";
+}
+
+function closeTroubleModal() {
+  document.getElementById('trouble-modal').style.display = 'none';
+}
+
+function setCalcDevice(device, ratio, btn) {
+  currentRatio = ratio;
+  const parent = btn.parentElement;
+  parent.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  calculateYield();
+}
+
+function calculateYield() {
+  const dose = document.getElementById('calcDose').value;
+  const result = (dose * currentRatio).toFixed(1);
+  document.getElementById('yieldResult').innerText = dose > 0 ? result : "0";
+}
+
+let calibLog = [];
+let shotCount = 1;
+let currentFlaw = "";
+let currentAction = "";
+function selectStep(stepId) {
+  document.querySelectorAll('.wizard-step').forEach(el => el.style.display = 'none');
+  document.getElementById(stepId).style.display = 'block';
+}
+
+function setFlawAndAction(flawName, actionHtml, actionText) {
+  currentFlaw = flawName;
+  currentAction = actionText;
+  document.getElementById('wizard-result-msg').innerHTML = actionHtml;
+  selectStep('wizard-result');
+}
+
+function applyAndRetest() {
+  let d = document.getElementById('dialDose').value || "?";
+  let y = document.getElementById('dialYield').value || "?";
+  let t = document.getElementById('dialTime').value || "?";
+  calibLog.push(`🎯 *Shot ${shotCount}*\nIn: ${d}g | Out: ${y}g | Time: ${t}s\nFlaw: ${currentFlaw}\nAction: ${currentAction}`);
+  shotCount++;
+  document.getElementById('dialYield').value = '';
+  document.getElementById('dialTime').value = '';
+  selectStep('wizard-step-1');
+}
+
+function markPerfect() {
+  let d = document.getElementById('dialDose').value || "?";
+  let y = document.getElementById('dialYield').value || "?";
+  let t = document.getElementById('dialTime').value || "?";
+  calibLog.push(`🏆 *Shot ${shotCount} (FINAL)*\nIn: ${d}g | Out: ${y}g | Time: ${t}s\nResult: Balanced & Sweet (PERFECT)`);
+  let logHtml = calibLog.map(log => `<div style="margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:8px;">${log.replace(/\n/g, '<br>')}</div>`).join('');
+  document.getElementById('calibration-log-display').innerHTML = logHtml;
+  selectStep('wizard-success');
+}
+
+function resetWizard() {
+  calibLog = [];
+  shotCount = 1;
+  document.getElementById('dialDose').value = '';
+  document.getElementById('dialYield').value = '';
+  document.getElementById('dialTime').value = '';
+  selectStep('wizard-step-1');
+}
+
+function sendToManager() {
+  let text = "☕ *ESPRESSO CALIBRATION REPORT*\n\n" + calibLog.join("\n\n") + "\n\n✅ *Calibration Complete & Parameters Locked In.*";
+  window.open("https://wa.me/?text=" + encodeURIComponent(text), '_blank');
+}
+
+function filterCat(cat, btn) {
+  activeCat = cat;
+  document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards();
+}
+
+function renderCards() {
+  const grid = document.getElementById('recipeGrid');
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  grid.innerHTML = '';
+  data.filter(r => {
+    return r.name.toLowerCase().includes(q) && (activeCat === "All" || r.cat === activeCat);
+  }).forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.onclick = () => div.classList.toggle('flipped');
+    
+    div.innerHTML = `
+    <div class="card-inner">
+      <div class="card-front">
+        <span class="cat-tag" style="background:${r.color}">${r.cat}</span>
+        <h2 style="font-weight:400; letter-spacing:1px;">${r.name}</h2>
+        <small style="color:var(--accent); font-size:0.6rem; margin-top:10px; font-weight: bold; letter-spacing: 1px;">TAP TO VIEW RECIPE</small>
+      </div>
+      <div class="card-back">
+        <h3 style="margin:0; font-size:1.1rem; color:var(--accent); border-bottom:1px solid #333; padding-bottom:15px; text-align:center; text-transform:uppercase; letter-spacing:2px; position: sticky; top: 0; background: var(--bg-card); z-index: 10;">${r.name}</h3>
+        
+        <div style="margin-top:20px; background:#15181a; padding:12px; border-radius:4px; border-left:4px solid var(--accent);">
+            <span style="display:block; font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; font-weight:bold; letter-spacing:1px; margin-bottom:5px;">Ingredients</span>
+            <div style="font-size:0.9rem; line-height:1.5; color: white;">${r.ing}</div>
+        </div>
+
+        <div style="margin-top:12px; background:#15181a; padding:12px; border-radius:4px; border-left:4px solid #3498db;">
+            <span style="display:block; font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; font-weight:bold; letter-spacing:1px; margin-bottom:5px;">Method</span>
+            <div style="font-size:0.9rem; line-height:1.5; color: white;">${r.method}</div>
+        </div>
+
+        <div style="margin-top:12px; background:#15181a; padding:12px; border-radius:4px; border-left:4px solid #e67e22;">
+            <span style="display:block; font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; font-weight:bold; letter-spacing:1px; margin-bottom:5px;">Equipment</span>
+            <div style="font-size:0.9rem; line-height:1.5; color: white;">${r.eq}</div>
+        </div>
+
+        <div style="margin-top:12px; background:#15181a; padding:12px; border-radius:4px; border-left:4px solid #2ecc71;">
+            <span style="display:block; font-size:0.65rem; color:var(--text-secondary); text-transform:uppercase; font-weight:bold; letter-spacing:1px; margin-bottom:5px;">Serving</span>
+            <div style="font-size:0.9rem; line-height:1.5; color: white;">${r.serv}</div>
+        </div>
+      </div>
+    </div>`;
+    grid.appendChild(div);
+  });
+}
+
+function renderContacts() {
+  const grid = document.getElementById('contactGrid');
+  grid.innerHTML = '';
+  contactData.forEach(c => {
+    const isMobile = c.phone.startsWith('05');
+    const waLink = "https://wa.me/971" + c.phone.substring(1);
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.onclick = (e) => { if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') div.classList.toggle('flipped'); };
+    div.innerHTML = `
+    <div class="card-inner">
+    <div class="card-front">
+    <span class="cat-tag" style="background:var(--accent); color:#000;">CONTACT</span>
+    <h2 style="font-weight:400; letter-spacing:1px; margin-bottom:5px;">${c.name}</h2>
+    <p style="color:var(--text-secondary); margin:0; font-size:0.8rem; text-transform:uppercase;">${c.role}</p>
+    <p style="color:var(--accent); font-size:0.7rem; margin-top:10px; font-weight:bold;">${c.location}</p>
+    </div>
+    <div class="card-back" style="text-align: center;">
+    <h3 style="margin:0; font-size:1rem; color:var(--accent); border-bottom:1px solid #333; padding-bottom:5px;">${c.name}</h3>
+    <span style="display: block; font-weight: 800; font-size: 0.65rem; color: #888; text-transform: uppercase; margin-top: 15px;">Mobile Number</span>
+    <div style="font-size:1.4rem; font-weight:bold; color:white; margin-top: 5px;">${c.phone}</div>
+    <button onclick="copyNumber('${c.phone}', this)" style="background: #252a2e; color: white; border: 1px solid #444; padding: 5px 10px; border-radius: 4px; font-size: 0.6rem; cursor: pointer; margin-top:10px;">COPY</button>
+    <div style="margin-top:30px; display: flex; flex-direction: column; gap: 10px; align-items: center;">
+    <a href="tel:${c.phone}" style="background:var(--accent); color:#000; padding:12px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:0.8rem; width: 85%; text-align: center;">CALL NOW</a>
+    ${isMobile ? `<a href="${waLink}" target="_blank" style="background:#25D366; color:#fff; padding:12px 25px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:0.8rem; text-transform:uppercase; width: 85%; text-align: center;">WhatsApp</a>` : ''}
+    </div>
+    </div>
+    </div>`;
+    grid.appendChild(div);
+  });
+}
+
+function renderDocuments() {
+  const grid = document.getElementById('docsGrid');
+  grid.innerHTML = '';
+  docData.forEach(d => {
+    const isHandbook = d.name === "Hand book";
+    const btnText = isHandbook ? "Open & Read" : "Download File";
+    const linkHref = isHandbook ? "javascript:void(0)" : d.file;
+    const clickAction = isHandbook ? `onclick="openPDF('${d.file}')"` : "";
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+    <div class="card-inner">
+    <div class="card-front">
+    <span class="cat-tag" style="background:var(--accent); color:#000;">DOCS</span>
+    <h2 style="font-weight:400; letter-spacing:1px; margin-bottom:15px;">${d.name}</h2>
+    <div style="margin-top:40px; width: 80%;">
+    <a href="${linkHref}" ${clickAction} style="background:var(--accent); color:#000; padding:15px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:0.8rem; text-transform:uppercase; display:block; text-align: center;">${btnText}</a>
+    </div>
+    </div>
+    </div>`;
+    grid.appendChild(div);
+  });
+}
+
+function openPDF(file) {
+  document.getElementById('pdf-frame').src = file;
+  document.getElementById('pdf-overlay').style.display = 'flex';
+}
+
+function closePDF() {
+  document.getElementById('pdf-overlay').style.display = 'none';
+}
+
+function copyNumber(num, btn) {
+  navigator.clipboard.writeText(num).then(() => {
+    btn.innerText = "COPIED!";
+    setTimeout(() => { btn.innerText = "COPY"; }, 2000);
+  });
+}
+
+let currentQ = null;
+function startNewQuestion() {
+  if(data.length === 0) return;
+  currentQ = data[Math.floor(Math.random() * data.length)];
+  document.getElementById('q-cat').innerText = currentQ.cat;
+  document.getElementById('q-cat').style.background = currentQ.color;
+  document.getElementById('q-text').innerText = `Identify the ingredients for: ${currentQ.name}`;
+  
+  let options = [currentQ.ing];
+  while(options.length < 4 && options.length < data.length) {
+    let r = data[Math.floor(Math.random() * data.length)].ing;
+    if(!options.includes(r)) options.push(r);
+  }
+  options.sort(() => Math.random() - 0.5);
+  const container = document.getElementById('q-options');
+  container.innerHTML = '';
+  options.forEach(opt => {
+    const b = document.createElement('button');
+    b.className = 'option-btn';
+    b.innerText = opt;
+    b.onclick = () => (opt === currentQ.ing) ? startNewQuestion() : showQuizPopup();
+    container.appendChild(b);
+  });
+}
+
+function showQuizPopup() {
+  document.getElementById('popup-title').innerText = "INCORRECT";
+  document.getElementById('p-name').innerText = currentQ.name;
+  document.getElementById('p-ing').innerText = currentQ.ing;
+  document.getElementById('p-meth').innerText = currentQ.method;
+  document.getElementById('p-eq').innerText = currentQ.eq;
+  document.getElementById('p-serv').innerText = currentQ.serv;
+  document.getElementById('popup-overlay').style.display = 'flex';
+}
+
+function closePopup() {
+  document.getElementById('popup-overlay').style.display = 'none';
+  if (document.getElementById('quiz-section').style.display === 'block') startNewQuestion();
+}
+
+const schedURLs = {
+  hilli: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVN9A9W0UdZHYSp4DF-VG2EJt8qMIl3cL92t4eqe1Hehe-u4l9BfZck081zXlmGXouTPPilHYS31jw/pub?gid=0&single=true&output=csv",
+  nimah: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVN9A9W0UdZHYSp4DF-VG2EJt8qMIl3cL92t4eqe1Hehe-u4l9BfZck081zXlmGXouTPPilHYS31jw/pub?gid=2136013769&single=true&output=csv",
+  yahar: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVN9A9W0UdZHYSp4DF-VG2EJt8qMIl3cL92t4eqe1Hehe-u4l9BfZck081zXlmGXouTPPilHYS31jw/pub?gid=1939032305&single=true&output=csv",
+  sarooj: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVN9A9W0UdZHYSp4DF-VG2EJt8qMIl3cL92t4eqe1Hehe-u4l9BfZck081zXlmGXouTPPilHYS31jw/pub?gid=240946238&single=true&output=csv",
+  riyadh: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSVN9A9W0UdZHYSp4DF-VG2EJt8qMIl3cL92t4eqe1Hehe-u4l9BfZck081zXlmGXouTPPilHYS31jw/pub?gid=2095999078&single=true&output=csv"
+};
+let currentScheduleData = { headers: [], dates: [], employees: [], branch: 'hilli' };
+async function loadNativeSchedule(branch, btn) {
+  const parent = btn.parentElement;
+  parent.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sched-loader').style.display = 'block';
+  document.getElementById('view-roster').style.display = 'none';
+  document.getElementById('view-today').style.display = 'none';
+  document.getElementById('view-personal').style.display = 'none';
+  try {
+    const response = await fetch(schedURLs[branch]);
+    const csvText = await response.text();
+    parseScheduleCSV(csvText, branch);
+    document.getElementById('sched-loader').style.display = 'none';
+    switchScheduleView('roster');
+  } catch(e) {
+    document.getElementById('sched-loader').innerText = "Network error. Could not sync.";
+  }
+}
+
+function parseScheduleCSV(csv, branch) {
+  const rows = csv.split('\n').map(r => r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/"/g, '').trim()));
+  let nameRowIdx = -1;
+  for(let i=0; i<rows.length; i++) {
+    if(rows[i][0] && rows[i][0].toUpperCase().includes('NAME')) {
+      nameRowIdx = i;
+      break;
+    }
+  }
+  if(nameRowIdx === -1) nameRowIdx = 0;
+  const days = rows[nameRowIdx].slice(1).filter(d => d !== "");
+  const dates = (rows.length > nameRowIdx + 1) ? rows[nameRowIdx + 1].slice(1) : [];
+  const employees = [];
+  const startIdx = (rows.length > nameRowIdx + 1 && rows[nameRowIdx+1][0] === '') ? nameRowIdx + 2 : nameRowIdx + 1;
+  for(let i = startIdx; i < rows.length; i++) {
+    let empName = rows[i][0];
+    if(empName && empName !== '') {
+      employees.push({ name: empName, shifts: rows[i].slice(1, days.length + 1) });
+    }
+  }
+  currentScheduleData = { headers: days, dates: dates, employees: employees, branch: branch.toUpperCase() };
+  renderFullRoster();
+  renderToday();
+  populateEmpSelect();
+}
+
+function renderFullRoster() {
+  const tbl = document.getElementById('roster-table');
+  let html = `<thead><tr style="background:#252a2e; border-bottom:2px solid var(--accent);"><th style="padding:15px; font-weight:800; letter-spacing:1px; color:var(--accent);">NAME</th>`;
+  for(let i=0; i<currentScheduleData.headers.length; i++) {
+    let day = currentScheduleData.headers[i];
+    let date = currentScheduleData.dates[i] || '';
+    html += `<th style="padding:15px; font-weight:800;">${day}<br><span style="font-size:0.65rem; color:#aaa; font-weight:normal;">${date}</span></th>`;
+  }
+  html += `</tr></thead><tbody>`;
+  currentScheduleData.employees.forEach(emp => {
+    html += `<tr style="border-bottom:1px solid #333;"><td style="padding:15px; font-weight:bold; color:#fff; background:#1c1f22;">${emp.name}</td>`;
+    emp.shifts.forEach(shift => {
+      let isOff = shift.toUpperCase().includes('OFF');
+      let bg = isOff ? 'background:rgba(231,76,60,0.15); color:#e74c3c; font-weight:bold;' : 'color:#ddd;';
+      html += `<td style="padding:15px; ${bg}">${shift}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody>`;
+  tbl.innerHTML = html;
+}
+
+function renderToday() {
+  const todayStr = new Date().toLocaleDateString('en-US', {weekday: 'short'}).toUpperCase();
+  let colIdx = currentScheduleData.headers.findIndex(h => h.toUpperCase().includes(todayStr));
+  let container = document.getElementById('today-container');
+  if(colIdx === -1) {
+    container.innerHTML = `<p style="color:var(--text-secondary);">Today's date is not on this schedule.</p>`;
+    return;
+  }
+  let html = '';
+  currentScheduleData.employees.forEach(emp => {
+    let shift = emp.shifts[colIdx] || 'OFF';
+    if(!shift.toUpperCase().includes('OFF') && shift.trim() !== '') {
+      html += `
+      <div style="background:#1c1f22; border:1px solid #333; border-left:4px solid var(--accent); padding:15px; border-radius:4px;">
+      <strong style="color:white; font-size:1.1rem; display:block; letter-spacing:1px; margin-bottom:5px;">${emp.name}</strong>
+      <span style="color:var(--accent); font-size:0.9rem; font-weight:bold;">🕒 ${shift}</span>
+      </div>`;
+    }
+  });
+  if(html === '') html = '<p style="color:var(--text-secondary);">No active shifts found for today.</p>';
+  container.innerHTML = html;
+}
+
+function populateEmpSelect() {
+  const sel = document.getElementById('emp-select');
+  sel.innerHTML = '<option value="">-- Choose Name from List --</option>';
+  currentScheduleData.employees.forEach(emp => {
+    sel.innerHTML += `<option value="${emp.name}">${emp.name}</option>`;
+  });
+  document.getElementById('flashcard-wrapper').style.display = 'none';
+}
+
+function switchScheduleView(view) {
+  document.getElementById('view-roster').style.display = (view === 'roster') ? 'block' : 'none';
+  document.getElementById('view-today').style.display = (view === 'today') ? 'block' : 'none';
+  document.getElementById('view-personal').style.display = (view === 'personal') ? 'block' : 'none';
+  document.getElementById('btn-view-roster').classList.toggle('active', view === 'roster');
+  document.getElementById('btn-view-today').classList.toggle('active', view === 'today');
+  document.getElementById('btn-view-personal').classList.toggle('active', view === 'personal');
+}
+
+function generatePersonalCard() {
+  const name = document.getElementById('emp-select').value;
+  const wrapper = document.getElementById('flashcard-wrapper');
+  const card = document.getElementById('personal-flashcard');
+  if(!name) { wrapper.style.display = 'none'; return; }
+  const emp = currentScheduleData.employees.find(e => e.name === name);
+  if(!emp) return;
+  let html = `
+  <div style="text-align:center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom:15px;">
+  <h2 style="margin:0; color:var(--accent); letter-spacing:2px; text-transform:uppercase;">${emp.name}</h2>
+  <span style="font-size:0.8rem; color:#aaa; font-weight:bold; letter-spacing:1px;">WEEKLY SHIFTS - ${currentScheduleData.branch}</span>
+  </div>
+  <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px; font-size:0.95rem;">`;
+  for(let i=0; i<currentScheduleData.headers.length; i++) {
+    let day = currentScheduleData.headers[i];
+    let date = currentScheduleData.dates[i] || '';
+    let shift = emp.shifts[i] || 'OFF';
+    let isOff = shift.toUpperCase().includes('OFF');
+    let color = isOff ? 'var(--error)' : 'white';
+    html += `
+    <div style="padding:12px 0; border-bottom:1px dashed #333;">
+    <strong style="color:var(--accent); letter-spacing:1px;">${day}</strong> <span style="font-size:0.7rem; color:#888;">${date}</span>
+    </div>
+    <div style="padding:12px 0; border-bottom:1px dashed #333; color:${color}; font-weight:${isOff ? 'bold' : 'normal'};">
+    ${shift}
+    </div>`;
+  }
+  html += `</div><div style="text-align:center; margin-top:20px; font-size:0.7rem; color:#666; font-style:italic;">Official Schedule • Generated via Refill Portal</div>`;
+  card.innerHTML = html;
+  wrapper.style.display = 'flex';
+}
+
+function downloadFlashcard() {
+  const card = document.getElementById('personal-flashcard');
+  html2canvas(card, { backgroundColor: '#0f1113', scale: 2 }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = `Refill_Schedule_${document.getElementById('emp-select').value}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+}
+
+function toggleNativeFullscreen() {
+  const wrapper = document.getElementById('roster-fullscreen-wrapper');
+  const closeBtn = document.getElementById('close-native-btn');
+  const tbl = document.getElementById('roster-table');
+  if (wrapper.classList.contains('native-fullscreen-active')) {
+    wrapper.classList.remove('native-fullscreen-active');
+    closeBtn.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    window.removeEventListener('resize', scaleNativeRoster);
+    tbl.style.transform = '';
+    tbl.style.width = '100%';
+  } else {
+    wrapper.classList.add('native-fullscreen-active');
+    closeBtn.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('resize', scaleNativeRoster);
+    scaleNativeRoster();
+  }
+}
+
+function scaleNativeRoster() {
+  const wrapper = document.getElementById('roster-fullscreen-wrapper');
+  if (!wrapper.classList.contains('native-fullscreen-active')) return;
+  const tbl = document.getElementById('roster-table');
+  tbl.style.transform = 'scale(1)';
+  tbl.style.width = 'max-content';
+  const tblWidth = tbl.scrollWidth;
+  const tblHeight = tbl.scrollHeight;
+  const winWidth = window.innerWidth;
+  const winHeight = window.innerHeight;
+  const scaleX = winWidth / tblWidth;
+  const scaleY = winHeight / tblHeight;
+  const scale = Math.min(scaleX, scaleY) * 0.95;
+  tbl.style.transform = `scale(${scale})`;
+  tbl.style.transformOrigin = 'center center';
+}
+</script>
+</body>
+</html>
